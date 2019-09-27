@@ -2,16 +2,26 @@ import java.util.regex.Pattern;
 
 public enum Token {
 
-	Title("<title>.*?</title>"),
-	Src("src=(\".*?\"|'.*?')"),
-	Href("href=(\".?*\"|'.?*')");
+	Title("<title>.*?</title>", 7, 8),
+	Src("src=(\".*?\"|'.*?')", 5, 1),
+	Href("href=(\".?*\"|'.?*')", 6, 1);
 	
 	private Pattern pattern;
+	private int lengthOfUndesiredStringFromFirst;
+	private int lengthOfUndesiredStringFromLast;
 	
-	private Token(String pattern) {
+	private Token(String pattern, int lengthOfUndesiredStringFromFirst, int lengthOfUndesiredStringFromLast) {
 		this.pattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
+		this.lengthOfUndesiredStringFromFirst = lengthOfUndesiredStringFromFirst;
+		this.lengthOfUndesiredStringFromLast = lengthOfUndesiredStringFromLast;
 	}
 	public Pattern getPattern() {
 		return pattern;
+	}
+	public int getLengthOfUndesiredStringFromFirst() {
+		return lengthOfUndesiredStringFromFirst;
+	}
+	public int getlengthOfUndesiredStringFromLast() {
+		return lengthOfUndesiredStringFromLast;
 	}
 }

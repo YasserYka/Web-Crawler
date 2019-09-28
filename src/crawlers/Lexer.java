@@ -3,16 +3,16 @@ import java.util.regex.Matcher;
 
 public class Lexer {
 
-	public static String lexer(String html){
+	public static tokenByload lexer(String html){
 		
-		String link = null;
+		tokenByload tokenbyload = null;
 		
 		for(Token token : Token.values()){
 			Matcher matcher = token.getPattern().matcher(html);
 			if(matcher.find()) {
-				link = matcher.group().substring(token.getLengthOfUndesiredStringFromFirst(), matcher.group().length() - token.getlengthOfUndesiredStringFromLast());
+				tokenbyload = new tokenByload(token.name(), matcher.group().substring(token.getLengthOfUndesiredStringFromFirst(), matcher.group().length() - token.getlengthOfUndesiredStringFromLast()));
 			}
 		}
-		return link;
+		return tokenbyload;
 	}
 }

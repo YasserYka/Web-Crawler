@@ -5,7 +5,8 @@ public enum Token {
 
 	Title("<title>.*?</title>", 7, 8),
 	Src("src=(\".*?\"|'.*?')", 5, 1),
-	Href("href=(\".*?\"|'.*?')", 6, 1);
+	Href("href=(\".*?\"|'.*?')", 6, 1),
+	Description("meta\\s(name=(\"description\"|'description')|.*?\\sname=(\"description\"|'description'))\\scontent=(\".*?\"|'.*?')", 33, 1);
 	
 	private Pattern pattern;
 	private int lengthOfUndesiredStringFromFirst;

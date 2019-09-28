@@ -25,6 +25,11 @@ class LexerTest {
 		String expectedHref= "https://www.google.com/webhp?tab=ww";
 		assertEquals(expectedHref, actualHref.getData());
 		
+		String descriptionInput = "<meta name='description' content='Free Web tutorials'>";
+		tokenByload actualDescription = Lexer.lexer(descriptionInput);
+		String expectedDescription= "Free Web tutorials";
+		assertEquals(expectedDescription, actualDescription.getData());
+		
 	}
 
 }

@@ -1,10 +1,11 @@
+package crawlers;
 import java.util.regex.Pattern;
 
 public enum Token {
 
 	Title("<title>.*?</title>", 7, 8),
 	Src("src=(\".*?\"|'.*?')", 5, 1),
-	Href("href=(\".?*\"|'.?*')", 6, 1);
+	Href("href=(\".*?\"|'.*?')", 6, 1);
 	
 	private Pattern pattern;
 	private int lengthOfUndesiredStringFromFirst;

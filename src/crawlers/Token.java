@@ -4,6 +4,7 @@ import java.util.regex.Pattern;
 public enum Token {
 
 	Title("<title>.*?</title>", 7, 8),
+	//TODO: add keywords meta
 	Src("src=(\".*?\"|'.*?')", 5, 1),
 	Href("href=(\".*?\"|'.*?')", 6, 1),
 	Description("meta\\s(name=(\"description\"|'description')|.*?\\sname=(\"description\"|'description'))\\scontent=(\".*?\"|'.*?')", 33, 1);

@@ -6,20 +6,23 @@ import java.util.Optional;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JDBC {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(JDBC.class);
 	private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
 	private static final String DATABASE_URL = "jdbc:mysql://localhost/EMP";
 	//TODO: Find secure way instead of hardcoding file prop maybe?
-	private static final String username = null;
-	private static final String password = null;
+	private static final String USERNAME = null;
+	private static final String PASSWORD = null;
 	
 	private static Connection connect() throws ClassNotFoundException, SQLException {
 		Connection connection = null;
 		
 		Class.forName("com.mysql.jdbc.Driver");
-		connection = DriverManager.getConnection(DATABASE_URL, username, password);
+		connection = DriverManager.getConnection(DATABASE_URL, USERNAME, PASSWORD);
 		
 		return connection;
 	}
@@ -47,9 +50,9 @@ public class JDBC {
 		connection.close();
 		statement.close();
 		}catch (SQLException e) {
-			//TODO: handle/log exception
+			LOGGER.error("SQLException triggered! {}", e);
 		}catch (ClassNotFoundException e) {
-			//TODO: handle/log exception
+			LOGGER.error("ClassNotFoundException triggered at query method! {}", e);
 		}
 		_makeSureConnectionAndStatmentAreClosed(connection, statement);
 	}
@@ -60,7 +63,7 @@ public class JDBC {
 			if(Optional.ofNullable(statement).isPresent())
 				statement.close();
 			} catch (SQLException e) {
-				//TODO: handle/log exception
+				LOGGER.error("SQLException triggered at _makeSureCo.. method! {}", e);
 			}
 	}
 	

@@ -2,6 +2,7 @@ package crawlers;
 
 import java.sql.Connection;
 import java.sql.Statement;
+import java.util.Optional;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,10 +12,10 @@ public class JDBC {
 	private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
 	private static final String DATABASE_URL = "jdbc:mysql://localhost/EMP";
 	//TODO: Find secure way instead of hardcoding file prop maybe?
-	private final String username = null;
-	private final String password = null;
+	private static final String username = null;
+	private static final String password = null;
 	
-	public Connection connect() throws ClassNotFoundException, SQLException {
+	private static Connection connect() throws ClassNotFoundException, SQLException {
 		Connection connection = null;
 		
 		Class.forName("com.mysql.jdbc.Driver");
@@ -23,14 +24,14 @@ public class JDBC {
 		return connection;
 	}
 	
-	public Statement statement(Connection connection) throws SQLException {
+	private static Statement statement(Connection connection) throws SQLException {
 		Statement statement = null;
 		
 		statement = connection.createStatement();
 
 		return statement;
 	}
-	public void query(String query) {
+	public static void query(String query) {
 		Connection connection = null;
 		Statement statement = null;		
 		
@@ -43,7 +44,6 @@ public class JDBC {
 		while(resultset.next()) {
 			//Retrieve and return from resultset
 		}
-		
 		connection.close();
 		statement.close();
 		}catch (SQLException e) {
@@ -51,6 +51,17 @@ public class JDBC {
 		}catch (ClassNotFoundException e) {
 			//TODO: handle/log exception
 		}
+		_makeSureConnectionAndStatmentAreClosed(connection, statement);
+	}
+	private static void _makeSureConnectionAndStatmentAreClosed(Connection connection, Statement statement) {
+		try {
+			if(Optional.ofNullable(connection).isPresent())
+				connection.close();
+			if(Optional.ofNullable(statement).isPresent())
+				statement.close();
+			} catch (SQLException e) {
+				//TODO: handle/log exception
+			}
 	}
 	
 }

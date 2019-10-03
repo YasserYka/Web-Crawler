@@ -10,9 +10,7 @@ public class Lexer {
 		for(Token token : Token.values()){
 			Matcher matcher = token.getPattern().matcher(html);
 			while(matcher.find()) {
-				if(token == Token.Src) 
-					webpage.appendDescription(matcher.group().substring(token.getLengthOfUndesiredStringFromFirst(), matcher.group().length() - token.getlengthOfUndesiredStringFromLast()));
-				else if(token == Token.Href || token == Token.Src)
+				if(token == Token.Href || token == Token.Src)
 					webpage.addLink(matcher.group().substring(token.getLengthOfUndesiredStringFromFirst(), matcher.group().length() - token.getlengthOfUndesiredStringFromLast()));
 				else if(token == Token.Title)
 					webpage.appendTitle(matcher.group().substring(token.getLengthOfUndesiredStringFromFirst(), matcher.group().length() - token.getlengthOfUndesiredStringFromLast()));
@@ -20,6 +18,6 @@ public class Lexer {
 					webpage.appendDescription(matcher.group().substring(token.getLengthOfUndesiredStringFromFirst(), matcher.group().length() - token.getlengthOfUndesiredStringFromLast()));
 			}
 		}
-		return null;
+		return webpage;
 	}
 }

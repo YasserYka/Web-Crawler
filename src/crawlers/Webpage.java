@@ -31,6 +31,7 @@ public class Webpage {
 			throw new IndexOutOfBoundsException("the links arrayList is empty");
 		return links.get(0);
 	}
+	
 	public String getDescription() {
 		return description.toString();
 	}

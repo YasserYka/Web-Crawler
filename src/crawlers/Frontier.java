@@ -1,18 +1,39 @@
 package crawlers;
 
 import java.util.HashSet;
+import java.util.Optional;
 
 public class Frontier {
 
-	HashSet<String> frontier;
+	private static HashSet<String> frontier;
+	private final int numberOfPagesToCrawl = 5; 
 	
-	public Frontier() {
-		frontier = new HashSet<String>();
+	private Frontier() {}
+	
+	public static final HashSet<String> createFrontier() {
+		if(!Optional.ofNullable(frontier).isPresent())
+			frontier = new HashSet<String>();
+		return frontier;
 	}
 	
-	public void parseURL(){
+	private void parseURL(){
 		//TODO: loop through frontier
-		//TODO: if already in frontier means don't crawler it 
+		//TODO: check if already in frontier means don't crawler it 
 		//TODO: use http client to send request to url
+		//TODO: call the lexer
+		//TODO: add url into frontier
 	}
+	
+	public void start(String seed) {
+		
+	}
+	
+	//TODO: ask the DB if url have been visited?
+	private boolean isVisited(String url) {return false;}
+	
+	//TODO: 
+	private void nextUrl() {
+		
+	}
+	
 }

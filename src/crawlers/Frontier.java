@@ -35,5 +35,4 @@ public class Frontier {
 	private void nextUrl() {
 		
 	}
-	
 }

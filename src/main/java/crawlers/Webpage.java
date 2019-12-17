@@ -1,5 +1,6 @@
 package crawlers;
 
+
 import java.util.ArrayList;
 
 public class Webpage {

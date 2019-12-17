@@ -1,4 +1,5 @@
 package crawlers;
+
 import java.util.regex.Pattern;
 
 public enum Token {

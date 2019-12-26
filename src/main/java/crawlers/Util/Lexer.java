@@ -1,6 +1,8 @@
-package crawlers;
+package crawlers.Util;
 
 import java.util.regex.Matcher;
+
+import crawlers.Webpage;
 
 public class Lexer {
 

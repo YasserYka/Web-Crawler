@@ -1,31 +1,44 @@
-package crawlers;
+package crawlers.Storage;
 
 
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Optional;
+import java.util.Queue;
 
 public class Frontier {
 
-	private static HashSet<String> frontier;
+	private static Queue<String> frontier;
 	//Universal proposed waiting time before sending next request
 	private static final int WAITING_TIME = 60;
 	//used for testing proposed it should be removed/changed in production
 	private static final int NUMBER_OF_PAGES_TO_CRAWLER = 10;
+	private static HashSet<String> seen;
 	
 	private Frontier() {}
 	
-	public static final HashSet<String> createFrontier() {
+	public static final Queue<String> createFrontier() {
 		if(!Optional.ofNullable(frontier).isPresent())
-			frontier = new HashSet<String>();
+			frontier = new LinkedList<String>();
 		return frontier;
 	}
 	
+	public static final HashSet<String> createSeen() {
+		if(!Optional.ofNullable(frontier).isPresent())
+			seen = new HashSet<String>();
+		return seen;
+	}
+	
 	private void parseURL(){
-		//TODO: loop through frontier
-		//TODO: check if already in frontier means don't crawler it 
-		//TODO: use http client to send request to url
-		//TODO: call the lexer
-		//TODO: add url into frontier
+		
+		String url;
+		while(!frontier.isEmpty()) {
+			url = frontier.remove();
+			seen.add(url);
+			//extract links from url's HTML
+			//for link in above's links 
+				//if not seen add it to frontier
+		}
 	}
 	
 	public void start(String seed) {
@@ -42,11 +55,11 @@ public class Frontier {
 	private void nextUrl() {
 		
 	}
-	private boolean isAllowed(String url) {
+	/*private boolean isAllowed(String url) {
 		if(!RobotTXT.haveRobotTxt(url))
 			return false;
 		return true;
-	}
+	}*/
 	
 	public void makeRequest() {
 		

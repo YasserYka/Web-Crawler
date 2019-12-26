@@ -1,4 +1,4 @@
-package crawlers;
+package crawlers.parsers;
 
 
 import java.util.regex.Pattern;
@@ -9,6 +9,6 @@ enum idTODO{
 	private idTODO(String regex) {this.pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);}
 	public Pattern getPattern() {return pattern;};
 }
-public class RobotsTxtParser {
+public class RobotsTxT {
 	
 }

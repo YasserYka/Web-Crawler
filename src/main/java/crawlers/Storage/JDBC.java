@@ -1,4 +1,4 @@
-package crawlers;
+package crawlers.Storage;
 
 
 import java.sql.Connection;

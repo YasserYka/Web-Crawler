@@ -1,4 +1,4 @@
-package crawlers;
+package crawlers.Util;
 
 public class Seen {
 

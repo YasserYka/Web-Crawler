@@ -41,6 +41,11 @@
 	    <artifactId>jedis</artifactId>
 	    <version>3.1.0</version>
 	</dependency>
+	<dependency>
+      <groupId>org.zeromq</groupId>
+      <artifactId>jeromq</artifactId>
+      <version>0.5.1</version>
+    </dependency>
    </dependencies>
    <build>
    		<plugins>

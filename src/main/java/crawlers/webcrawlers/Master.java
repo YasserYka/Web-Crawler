@@ -1,4 +1,4 @@
-package crawlers.mapReduce;
+package crawlers.webcrawlers;
 
 public class Master {
 

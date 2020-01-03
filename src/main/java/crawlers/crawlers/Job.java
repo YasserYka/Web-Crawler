@@ -1,4 +1,4 @@
-package crawlers.webcrawlers;
+package crawlers.crawlers;
 
 public class Job {
 

@@ -14,7 +14,7 @@ public class JDBC {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JDBC.class);
 	private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-	private static final String DATABASE_URL = "jdbc:mysql://localhost/EMP";
+	private static final String DATABASE_URL = "jdbc:mysql://localhos:1521:webcrawler";
 	//TODO: Find secure way instead of hardcoding file prop maybe?
 	private static final String USERNAME = null;
 	private static final String PASSWORD = null;
@@ -35,6 +35,7 @@ public class JDBC {
 
 		return statement;
 	}
+	
 	public static void query(String query) {
 		Connection connection = null;
 		Statement statement = null;		
@@ -48,15 +49,19 @@ public class JDBC {
 		while(resultset.next()) {
 			//Retrieve and return from resultset
 		}
+		
 		connection.close();
 		statement.close();
+		
 		}catch (SQLException e) {
 			LOGGER.error("SQLException triggered! {}", e);
 		}catch (ClassNotFoundException e) {
 			LOGGER.error("ClassNotFoundException triggered at query method! {}", e);
 		}
+		
 		_makeSureConnectionAndStatmentAreClosed(connection, statement);
 	}
+	
 	private static void _makeSureConnectionAndStatmentAreClosed(Connection connection, Statement statement) {
 		try {
 			if(Optional.ofNullable(connection).isPresent())

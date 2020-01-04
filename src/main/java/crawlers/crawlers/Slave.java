@@ -22,10 +22,13 @@ public class Slave {
 	private ZMQ.Poller poller;
 	//Expires at this time
 	private long expiration;
+	//This set to true if work not done yet
+	private boolean busy;
 	
 	protected Slave(ZFrame address) {
 		this.address = address;
         identity = new String(address.getData(), ZMQ.CHARSET);
+        busy = false;
 	}
 	
 	public void init() {
@@ -42,18 +45,31 @@ public class Slave {
 		    ZMsg message = null;
 		    	poller.poll(5000);
 		    	
-		    	//Message from Master
-		    	if(poller.pollin(0))
+		    	//Message from master
+		    	if(poller.pollin(0)) {
 		    		message = ZMsg.recvMsg(DLR);
+		    	}
 		        
-		    	//Heart beat from Master
+		    	//Heart beat from master
 		    	if(poller.pollin(1)) {
 		    		message = ZMsg.recvMsg(SUB);
-		    		//TODO: send to Master status
+		    		//Send to Master address, don't response if busy working
+		    		if(!busy)
+		    			sendStatusToMaster();
 		    	}
 
 		      }
 		}
+	}
+	
+	public void sendStatusToMaster() {
+		ZMsg status = new ZMsg();
+		status.add(address);
+		status.send(DLR);
+	}
+	
+	public void handleHeartbeat(ZFrame message){
+		//if(heartbeat != new String(message.getData(), ZMQ.CHARSET))
 	}
 	
 	public long getExpiration() {
@@ -64,7 +80,9 @@ public class Slave {
 		return address;
 	}
 
+	//TODO: Repressing the Enum events as byte
+	//This sends event as byte asking for Work
 	public void requestWork() {
-		
+		new ZFrame("\000").send(DLR,  0);
 	}
 }

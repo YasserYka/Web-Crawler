@@ -38,22 +38,36 @@ public class Master {
 		      ROUTER = context.createSocket(SocketType.ROUTER);
 		      PUB = context.createSocket(SocketType.PUB);
 		      poller = context.createPoller(2);
-
+		      
+		      //Register two sockets in poller so to listen on both sockets
 		      poller.register(ROUTER, ZMQ.Poller.POLLIN);
 		      poller.register(PUB, ZMQ.Poller.POLLIN);
 		      nextHeartbeat = System.currentTimeMillis() + heartbeatInterval;
 		      
-		      while (!Thread.currentThread().isInterrupted()) {
+		      while (true) {
+		    	  
 		    	ZMsg message = null;
-		    	poller.poll(5000);
+		    	poller.poll(heartbeatInterval);
 		    	
+		    	//message received from slave
 		    	if(poller.pollin(0)) {
 		    		message = ZMsg.recvMsg(ROUTER);
+		    		//If message received from slave that would means its available for work otherwise it would be busy requesting a web page
+		    		insertSlave(message.unwrap());
+		    		//TODO: check what kind of message received 
+		    		//This if statement means it received an event from slave (request for work, heart beat etc..) 
+		    		if(message.size() == 1) {
+		    			//TODO: if message == request-for-work.event
+		    		}
+		    		//This life for debugging the content of message
+		    		message.dump(System.out);
 		    	}
 		     }
 		}
 	}
 	
+	//Creates a new slave object for an address and enqueue it
+	public void insertSlave(ZFrame address){queueOfSlaves.add(new Slave(address));}
 	
 	//TODO: override equal
 	//This remove slave that is ready for work
@@ -63,6 +77,9 @@ public class Master {
 	
 	//TODO: make heart beat standard
 	public void sendHearbeat() {
+		for(Slave slave : queueOfSlaves) {
+			slave.getAddress().send(PUB, 0);
+		}
 		
 		if(System.currentTimeMillis() > nextHeartbeat)
 			nextHeartbeat = System.currentTimeMillis() + heartbeatInterval;

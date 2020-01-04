@@ -20,6 +20,8 @@ public class Slave {
 	private ZMQ.Socket SUB;
 	//to read from multiple sockets
 	private ZMQ.Poller poller;
+	//Expires at this time
+	private long expiration;
 	
 	protected Slave(ZFrame address) {
 		this.address = address;
@@ -54,7 +56,9 @@ public class Slave {
 		}
 	}
 	
-	
+	public long getExpiration() {
+		return expiration;
+	}
 	
 	public ZFrame getAddress() {
 		return address;

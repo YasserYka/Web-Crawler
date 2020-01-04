@@ -1,5 +1,6 @@
 package crawlers.crawlers;
 
+import crawlers.configuration.all;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -16,26 +17,20 @@ public class Master {
 	private ZMQ.Socket ROUTER;
 	private ZMQ.Socket PUB;
 	private ZMQ.Poller poller;
+	private int heartbeatInterval;
+	private long nextHeartbeat;
 	
 	public Master() {
 		queueOfSlaves = new LinkedList<Slave>();
 		numberOfAvailableSlaves = 0;
-	}
-	
-	//TODO: contact the frontier for url and coordinate Slaves or separate those two??
-	//TODO: create pools (queue maybe?) for available and busy Slaves (maybe only available (fallback:not monitoring all?))
-	//TODO: master should get page from slave to featured-modules? or slave should directly send it?	
-	
-	public Slave getFreeSlave() {
-		return null;
-	}
-	
-	public boolean allSlavesAreBusy() {
-		return false;
+		heartbeatInterval = all.HEARTBEAT_INTERVAL;
 	}
 	
 	//This return first available slave's address
-	public ZFrame getFreeSlaves() {return queueOfSlaves.remove().getAddress();}
+	public ZFrame getAvailableSlaves() {return queueOfSlaves.remove().getAddress();}
+	
+	//This removes slaves from the queue if they are expired
+	public void killExpiredSlaves() {queueOfSlaves.removeIf(slave -> slave.getExpiration() > System.currentTimeMillis());}
 	
 	public void init() {
 		try (ZContext context = new ZContext()) {
@@ -46,6 +41,7 @@ public class Master {
 
 		      poller.register(ROUTER, ZMQ.Poller.POLLIN);
 		      poller.register(PUB, ZMQ.Poller.POLLIN);
+		      nextHeartbeat = System.currentTimeMillis() + heartbeatInterval;
 		      
 		      while (!Thread.currentThread().isInterrupted()) {
 		    	ZMsg message = null;
@@ -54,34 +50,27 @@ public class Master {
 		    	if(poller.pollin(0)) {
 		    		message = ZMsg.recvMsg(ROUTER);
 		    	}
-		        
-		    	//Create message of type ZMSG
-		    	//Send it using abovesZMSG.send(pub)
-		    	Thread.sleep(1000);
-		      }
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		     }
 		}
+	}
+	
+	
+	//TODO: override equal
+	//This remove slave that is ready for work
+	public void removeSlave(Slave slave) {
+		//queueOfSlaves.remove(slave);
 	}
 	
 	//TODO: make heart beat standard
 	public void sendHearbeat() {
 		
-	}
-	
-	//TODO: pop available-slave call getUrlFromFrontier and put it in message body 
-	public void dispatchWork() {
-		
+		if(System.currentTimeMillis() > nextHeartbeat)
+			nextHeartbeat = System.currentTimeMillis() + heartbeatInterval;
 	}
 	
 	//TODO: contact frontier for URL
 	public String getUrlFromFrontier() {
 		return "";
-	}
-	
-	//Kill expired slaves
-	public void killSlaves() {
-		
 	}
 	
 }

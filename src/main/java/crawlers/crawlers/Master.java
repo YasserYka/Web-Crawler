@@ -10,6 +10,7 @@ import org.zeromq.ZFrame;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
+
 public class Master {
 
 	private int numberOfAvailableSlaves;
@@ -51,19 +52,29 @@ public class Master {
 		    	
 		    	//message received from slave
 		    	if(poller.pollin(0)) {
-		    		message = ZMsg.recvMsg(ROUTER);
-		    		//If message received from slave that would means its available for work otherwise it would be busy requesting a web page
-		    		insertSlave(message.unwrap());
-		    		//TODO: check what kind of message received 
-		    		//This if statement means it received an event from slave (request for work, heart beat etc..) 
-		    		if(message.size() == 1) {
-		    			//TODO: if message == request-for-work.event
-		    		}
+		    		/*The message is received from the crawler is consist of three frames [Header][Event][Body]
+		    			So recvMsg must be called three times
+		    			Header contain the address of the slave*/
+		    		ZMsg header = ZMsg.recvMsg(ROUTER);
+		    		//If header received from slave that would means its available for work otherwise it would be busy requesting a web page
+		    		insertSlave(header.unwrap());
+		    		ZMsg event = ZMsg.recvMsg(ROUTER);
+		    		//Print content of event frame
+		    		event.dump(System.out);
+		    		//Gets body content of the message
+		    		ZMsg body = ZMsg.recvMsg(ROUTER);
+		    		//Receiving a body means slave got the job done
+		    		handleDoneJob(body);
 		    		//This life for debugging the content of message
 		    		message.dump(System.out);
 		    	}
 		     }
 		}
+	}
+	
+	//When slave sends back response that means an crawled 
+	public void handleDoneJob(ZMsg body) {
+		
 	}
 	
 	//Creates a new slave object for an address and enqueue it
@@ -89,5 +100,6 @@ public class Master {
 	public String getUrlFromFrontier() {
 		return "";
 	}
+
 	
 }

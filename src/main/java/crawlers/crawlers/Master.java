@@ -28,7 +28,11 @@ public class Master {
 	//event heart-beat
 	private final String heartbeat = "\001";
 	//event ready-for-work;
-	private final String readyforwork = "\002";
+	private final String readyforTask = "\002";
+	//event task is done
+	private final String finishedTask = "\003";
+	//event task to be done
+	private final String taskToBeDone = "\004";
 	//Address to bind-to for Dealer-Router locally
 	private final String routerAddress = "tcp://127.0.0.1:5555";
 	//Address to bind-to for Subscriber-Publisher locally
@@ -41,6 +45,29 @@ public class Master {
 	
 	//This return first available slave's address
 	public ZFrame getAvailableSlaves() {return queueOfSlaves.remove().getAddress();}
+	
+	public void dispatch() {
+		//while there is URLs in frontier give them to slaves
+		while(queueOfSlaves.size() > 0) {
+			if(existUrlInFrontier()) {
+				//sendTask(getAvailableSlaves());
+			}
+		}
+	}
+	
+	public void sendTask(String address){
+		ROUTER.sendMore(address);
+		ROUTER.send(_constructJsonWithEventAndBody("",""));
+	}
+	
+	private String _constructJsonWithEventAndBody(String event, String body) {
+		return "";
+	}
+	
+	//If url exit fetch it 
+	public boolean existUrlInFrontier() {
+		return false;
+	}
 	
 	//This removes slaves from the queue if they are expired
 	public void killExpiredSlaves() {queueOfSlaves.removeIf(slave -> slave.getExpiration() > System.currentTimeMillis());}
@@ -64,12 +91,16 @@ public class Master {
 		    	  
 		    	poller.poll(heartbeatInterval);
 		    	
-		    	//message received from slave
+		    	//message received from slave requesting for work
 		    	if(poller.pollin(0)) {
 		    		/*The message is received from the crawler is consist of three frames [Header][Event][Body]
 		    			So recvMsg must be called three times
 		    			Header contain the address of the slave*/
 		    		ZMsg message = ZMsg.recvMsg(ROUTER);
+		    		//if slave sent message of size 1 means it's ready for work
+		    		if(message.size() == 1)
+			    		insertSlave(message.unwrap());
+		    		else {
 		    		//If header received from slave that would means its available for work otherwise it would be busy requesting a web page
 		    		insertSlave(message.unwrap());
 		    		//Take action upon the event received
@@ -81,6 +112,7 @@ public class Master {
 		    		handleDoneJob(body);
 		    		//This life for debugging the content of message
 		    		message.dump(System.out);
+		    		}
 		    	}
 		    	killExpiredSlaves();
 		     }
@@ -89,7 +121,9 @@ public class Master {
 	
 	//Takes the event frame and take action upon it
 	public void handleEvent(ZFrame event) {
-		
+		if(event.getString(ZMQ.CHARSET).equals(readyforTask)) {
+			
+		}
 	}
 	
 	//When slave sends back response that means an crawled 

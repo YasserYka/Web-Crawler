@@ -1,5 +1,7 @@
 package crawlers.crawlers;
 
+import java.util.Random;
+
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZFrame;
@@ -31,13 +33,17 @@ public class Slave {
 	//event heart-beat
 	private final String heartbeat = "\001";
 	//event ready-for-work;
-	private final String readyforwork = "\002";
+	private final String readyforTask = "\002";
+	//event task is done
+	private final String finishedTask = "\003";
 	//Counter for liveness of master
     private int liveness;
 	//Address to bind-to for Dealer-Router locally
 	private final String dealerAddress = "tcp://127.0.0.1:5555";
 	//Address to bind-to for Subscriber-Publisher locally
 	private final String subscriberAddress = "tcp://127.0.0.1:5556";
+	//Used to generate unique identity
+	private Random random;
 
 
 	protected Slave(ZFrame address) {
@@ -46,6 +52,7 @@ public class Slave {
         busy = false;
         liveness = livenessOfMaster;
         busy = false;
+        random = new Random(System.nanoTime());
 	}
 	
 	public void init() {
@@ -55,8 +62,11 @@ public class Slave {
 			SUB = context.createSocket(SocketType.SUB);
 		    poller = context.createPoller(2);
 		    
-		    DLR.bind(dealerAddress);
-		    SUB.bind(subscriberAddress);
+		    //Set identity for master
+		    DLR.setIdentity(String.format("%04X-%04X", random.nextInt(), random.nextInt()).getBytes(ZMQ.CHARSET));
+		    
+		    DLR.connect(dealerAddress);
+		    SUB.connect(subscriberAddress);
 		    
 		    poller.register(DLR, ZMQ.Poller.POLLIN);
 		    poller.register(SUB, ZMQ.Poller.POLLIN); 
@@ -65,9 +75,11 @@ public class Slave {
 		    	ZMsg message = null;
 		    	poller.poll(heartbeatInterval);
 		    	
+		    	
 		    	//Received message contain work to be done from master
 		    	if(poller.pollin(0)) {
 		    		message = ZMsg.recvMsg(DLR);
+		    		doTask(message.getFirst().toString());
 		    	}
 		        
 		    	//Heart beat from master
@@ -80,8 +92,7 @@ public class Slave {
 		    		else {
 		    			handleHeartbeat(message);
 			    		//Send to Master address, don't response if busy working
-			    		if(!busy)
-			    			requestWork();
+
 		    		}
 		    	}else
 		    		//if liveness equal zero means master is down call selfDestruction
@@ -89,6 +100,11 @@ public class Slave {
 		    			selfDestruction(context);
 		      }
 		}
+	}
+	
+	//Gets URL and start crawling
+	public void doTask(String url) {
+		
 	}
 	
 	//when received message not like what we expected
@@ -99,8 +115,11 @@ public class Slave {
 	
 	//check if heart beat is correct message if true reset liveness if no call handleWrongMessage
 	public void handleHeartbeat(ZMsg message){
-		if(heartbeat.equals(new String(message.getFirst().getData(), ZMQ.CHARSET)))
+		if(heartbeat.equals(new String(message.getFirst().getData(), ZMQ.CHARSET))) {
 			liveness = heartbeatInterval;
+    		if(!busy)
+    			createAndSendMessage(readyforTask, "");
+		}
 		else
 			handleWrongMessage(message);
 	}
@@ -118,8 +137,6 @@ public class Slave {
 	public void requestWork() {
 		ZMsg request = new ZMsg();
 		request.add(address);
-		request.add(readyforwork);
-		request.add("");
 		request.send(DLR);
 	}
 	
@@ -129,6 +146,13 @@ public class Slave {
 		context.destroySocket(DLR);
 		context.destroySocket(SUB);
 		System.exit(0);
+	}
+	
+	public void createAndSendMessage(String event, String body) {
+		ZMsg message = new ZMsg();
+		message.add(address);
+		message.add(event);
+		message.add(body);
 	}
 	
 }

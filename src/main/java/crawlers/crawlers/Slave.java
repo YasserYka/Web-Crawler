@@ -16,7 +16,7 @@ public class Slave {
 	private String identity;
 	//Dealer socket for Dealer-Router pattern
 	private ZMQ.Socket DLR; 
-	//subscriber socket for Subscriber-Publisher pattern
+	//subscriber socket for Subscriber-Publisher pattern used to receive heart beat from master
 	private ZMQ.Socket SUB;
 	//to read from multiple sockets
 	private ZMQ.Poller poller;
@@ -34,6 +34,10 @@ public class Slave {
 	private final String readyforwork = "\002";
 	//Counter for liveness of master
     private int liveness;
+	//Address to bind-to for Dealer-Router locally
+	private final String dealerAddress = "tcp://127.0.0.1:5555";
+	//Address to bind-to for Subscriber-Publisher locally
+	private final String subscriberAddress = "tcp://127.0.0.1:5556";
 
 
 	protected Slave(ZFrame address) {
@@ -41,6 +45,7 @@ public class Slave {
         identity = new String(address.getData(), ZMQ.CHARSET);
         busy = false;
         liveness = livenessOfMaster;
+        busy = false;
 	}
 	
 	public void init() {
@@ -50,15 +55,17 @@ public class Slave {
 			SUB = context.createSocket(SocketType.SUB);
 		    poller = context.createPoller(2);
 		    
+		    DLR.bind(dealerAddress);
+		    SUB.bind(subscriberAddress);
+		    
 		    poller.register(DLR, ZMQ.Poller.POLLIN);
 		    poller.register(SUB, ZMQ.Poller.POLLIN); 
-		    
-		    
+
 		    while (true) {
 		    	ZMsg message = null;
 		    	poller.poll(heartbeatInterval);
 		    	
-		    	//Message from master
+		    	//Received message contain work to be done from master
 		    	if(poller.pollin(0)) {
 		    		message = ZMsg.recvMsg(DLR);
 		    	}
@@ -70,24 +77,18 @@ public class Slave {
 		    		//Heart beat would have size = 1 (only one frame indicate liveness of slave)
 		    		if(message.size() != 1)
 		    			handleWrongMessage(message);
-		    		else
+		    		else {
 		    			handleHeartbeat(message);
-		    		
-		    		//Send to Master address, don't response if busy working
-		    		if(!busy)
-		    			sendStatusToMaster();
+			    		//Send to Master address, don't response if busy working
+			    		if(!busy)
+			    			requestWork();
+		    		}
 		    	}else
 		    		//if liveness equal zero means master is down call selfDestruction
 		    		if(--liveness == 0)
 		    			selfDestruction(context);
 		      }
 		}
-	}
-	
-	public void sendStatusToMaster() {
-		ZMsg message = new ZMsg();
-		message.add(address);
-		message.send(DLR);
 	}
 	
 	//when received message not like what we expected
@@ -101,7 +102,7 @@ public class Slave {
 		if(heartbeat.equals(new String(message.getFirst().getData(), ZMQ.CHARSET)))
 			liveness = heartbeatInterval;
 		else
-			handleHeartbeat(message);
+			handleWrongMessage(message);
 	}
 	
 	public long getExpiration() {
@@ -115,7 +116,11 @@ public class Slave {
 	//TODO: Repressing the Enum events as byte
 	//This sends event as byte asking for Work
 	public void requestWork() {
-		new ZFrame("\000").send(DLR,  0);
+		ZMsg request = new ZMsg();
+		request.add(address);
+		request.add(readyforwork);
+		request.add("");
+		request.send(DLR);
 	}
 	
 	//When master dosen't send a heart beat for long time kill this whole thread

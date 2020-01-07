@@ -13,17 +13,29 @@ import org.zeromq.ZMsg;
 
 public class Master {
 
-	private int numberOfAvailableSlaves;
+	//Holds slaves whom ready for work
 	private Queue<Slave> queueOfSlaves;
+	//Router socket for Dealer-Router pattern
 	private ZMQ.Socket ROUTER;
+	//Publisher socket for Subscriber-Publisher pattern used to send heart beat to master
 	private ZMQ.Socket PUB;
+	//to read from multiple sockets
 	private ZMQ.Poller poller;
+	//Time to wait before sending next heart beat
 	private int heartbeatInterval;
+	//Time to send heart beat in msec
 	private long nextHeartbeat;
-	
+	//event heart-beat
+	private final String heartbeat = "\001";
+	//event ready-for-work;
+	private final String readyforwork = "\002";
+	//Address to bind-to for Dealer-Router locally
+	private final String routerAddress = "tcp://127.0.0.1:5555";
+	//Address to bind-to for Subscriber-Publisher locally
+	private final String publisherAddress = "tcp://127.0.0.1:5556";
+
 	public Master() {
 		queueOfSlaves = new LinkedList<Slave>();
-		numberOfAvailableSlaves = 0;
 		heartbeatInterval = all.HEARTBEAT_INTERVAL;
 	}
 	
@@ -40,6 +52,9 @@ public class Master {
 		      PUB = context.createSocket(SocketType.PUB);
 		      poller = context.createPoller(2);
 		      
+		      PUB.bind(publisherAddress);
+		      ROUTER.bind(routerAddress);
+		      
 		      //Register two sockets in poller so to listen on both sockets
 		      poller.register(ROUTER, ZMQ.Poller.POLLIN);
 		      poller.register(PUB, ZMQ.Poller.POLLIN);
@@ -47,7 +62,6 @@ public class Master {
 		      
 		      while (true) {
 		    	  
-		    	ZMsg message = null;
 		    	poller.poll(heartbeatInterval);
 		    	
 		    	//message received from slave
@@ -55,21 +69,27 @@ public class Master {
 		    		/*The message is received from the crawler is consist of three frames [Header][Event][Body]
 		    			So recvMsg must be called three times
 		    			Header contain the address of the slave*/
-		    		ZMsg header = ZMsg.recvMsg(ROUTER);
+		    		ZMsg message = ZMsg.recvMsg(ROUTER);
 		    		//If header received from slave that would means its available for work otherwise it would be busy requesting a web page
-		    		insertSlave(header.unwrap());
-		    		ZMsg event = ZMsg.recvMsg(ROUTER);
-		    		//Print content of event frame
-		    		event.dump(System.out);
+		    		insertSlave(message.unwrap());
+		    		//Take action upon the event received
+		    		handleEvent(message.getFirst());
 		    		//Gets body content of the message
+		    		//TODO
 		    		ZMsg body = ZMsg.recvMsg(ROUTER);
 		    		//Receiving a body means slave got the job done
 		    		handleDoneJob(body);
 		    		//This life for debugging the content of message
 		    		message.dump(System.out);
 		    	}
+		    	killExpiredSlaves();
 		     }
 		}
+	}
+	
+	//Takes the event frame and take action upon it
+	public void handleEvent(ZFrame event) {
+		
 	}
 	
 	//When slave sends back response that means an crawled 
@@ -86,14 +106,13 @@ public class Master {
 		//queueOfSlaves.remove(slave);
 	}
 	
-	//TODO: make heart beat standard
+	//This needs to be sent to alert slaves that master a live and if any new subscriber haven't pushed in queue and in idle state 
 	public void sendHearbeat() {
-		for(Slave slave : queueOfSlaves) {
-			slave.getAddress().send(PUB, 0);
-		}
-		
-		if(System.currentTimeMillis() > nextHeartbeat)
+		//It's time to send heart beat to all subscriber
+		if(System.currentTimeMillis() > nextHeartbeat) {
+			PUB.send(heartbeat);
 			nextHeartbeat = System.currentTimeMillis() + heartbeatInterval;
+		}
 	}
 	
 	//TODO: contact frontier for URL

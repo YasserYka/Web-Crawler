@@ -44,7 +44,7 @@ public class Slave {
 	//Address to bind-to for Dealer-Router locally
 	private final String dealerAddress = "tcp://127.0.0.1:5555";
 	//Address to bind-to for Subscriber-Publisher locally
-	private final String subscriberAddress = "tcp://127.0.0.1:5556";
+	private final String subscriberAddress = "tcp://localhost:5556";
 	//Used to generate unique identity
 	private Random random;
 
@@ -67,6 +67,9 @@ public class Slave {
 		    address = String.format("%04X-%04X", random.nextInt(), random.nextInt());
 		    DLR.setIdentity(address.getBytes(ZMQ.CHARSET));
 		    
+		    //Sub subscribe to all kind of message of master (disable filtering)
+		    SUB.subscribe(ZMQ.SUBSCRIPTION_ALL);
+		    
 		    DLR.connect(dealerAddress);
 		    SUB.connect(subscriberAddress);
 		    
@@ -77,7 +80,6 @@ public class Slave {
 		    	ZMsg message = null;
 		    	poller.poll(heartbeatInterval);
 		    	
-		    	
 		    	//Received message contain work to be done from master
 		    	if(poller.pollin(0)) {
 		    		message = ZMsg.recvMsg(DLR);
@@ -86,8 +88,9 @@ public class Slave {
 		        
 		    	//Heart beat from master
 		    	if(poller.pollin(1)) {
+		    		System.out.println("heartbeat recived");
+
 		    		message = ZMsg.recvMsg(SUB);
-		    		
 		    		//Heart beat would have size = 1 (only one frame indicate liveness of slave)
 		    		if(message.size() != 1)
 		    			handleWrongMessage(message);

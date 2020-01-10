@@ -18,4 +18,6 @@
 	</section>
 	<section name="org.eclipse.ui.preferences.keysPreferencePage">
 	</section>
+	<section name="ImportExportAction">
+	</section>
 </section>

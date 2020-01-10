@@ -44,8 +44,8 @@ public class Master {
 	//Address to bind-to for Dealer-Router locally
 	private final String routerAddress = "tcp://127.0.0.1:5555";
 	//Address to bind-to for Subscriber-Publisher locally
-	private final String publisherAddress = "tcp://127.0.0.1:5556";
-
+	private final String publisherAddress = "tcp://*:5556";
+	//Subscr
 	public Master() {
 		queueOfSlaves = new LinkedList<Slave>();
 		heartbeatInterval = all.HEARTBEAT_INTERVAL;
@@ -101,6 +101,9 @@ public class Master {
 		      while (true) {
 		    	  
 		    	poller.poll(heartbeatInterval);
+		    	
+		    	//if it's time to send heart beat send it
+		    	sendHearbeat();
 		    	
 		    	//message received from slave requesting for work
 		    	if(poller.pollin(0)) {

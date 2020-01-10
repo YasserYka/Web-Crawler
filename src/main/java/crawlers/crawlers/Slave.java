@@ -10,12 +10,15 @@ import org.zeromq.ZMsg;
 
 public class Slave {
 
+	public static void main(String args[]) {
+		System.out.println("SLave running");
+		new Slave().init();	
+	}
+	
 	//TODO: set user-agent header to googlebot or any other crawler 
 	
 	//Address of slave
-	private ZFrame address;
-	//Printable identifier
-	private String identity;
+	private String address;
 	//Dealer socket for Dealer-Router pattern
 	private ZMQ.Socket DLR; 
 	//subscriber socket for Subscriber-Publisher pattern used to receive heart beat from master
@@ -46,9 +49,7 @@ public class Slave {
 	private Random random;
 
 
-	protected Slave(ZFrame address) {
-		this.address = address;
-        identity = new String(address.getData(), ZMQ.CHARSET);
+	protected Slave() {
         busy = false;
         liveness = livenessOfMaster;
         busy = false;
@@ -63,7 +64,8 @@ public class Slave {
 		    poller = context.createPoller(2);
 		    
 		    //Set identity for master
-		    DLR.setIdentity(String.format("%04X-%04X", random.nextInt(), random.nextInt()).getBytes(ZMQ.CHARSET));
+		    address = String.format("%04X-%04X", random.nextInt(), random.nextInt());
+		    DLR.setIdentity(address.getBytes(ZMQ.CHARSET));
 		    
 		    DLR.connect(dealerAddress);
 		    SUB.connect(subscriberAddress);
@@ -128,7 +130,7 @@ public class Slave {
 		return expiration;
 	}
 	
-	public ZFrame getAddress() {
+	public String getAddress() {
 		return address;
 	}
 

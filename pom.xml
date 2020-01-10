@@ -3,22 +3,21 @@
   <groupId>Java_webCrawlers</groupId>
   <artifactId>Java_webCrawlers</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <dependencies>
-  	<dependency>
-	    <groupId>mysql</groupId>
-	    <artifactId>mysql-connector-java</artifactId>
-	    <version>8.0.17</version>
-  	</dependency>
+  <properties>
+  <maven.compiler.target>1.8</maven.compiler.target>
+  <maven.compiler.source>1.8</maven.compiler.source>
+</properties>
+
+<dependencies>
+	<dependency>
+		<groupId>mysql</groupId>
+		<artifactId>mysql-connector-java</artifactId>
+		<version>8.0.17</version>
+	</dependency>
   	<dependency>
 	    <groupId>org.slf4j</groupId>
 	    <artifactId>slf4j-api</artifactId>
 	    <version>1.7.25</version>
-	</dependency>
-	<dependency>
-	    <groupId>ch.qos.logback</groupId>
-	    <artifactId>logback-classic</artifactId>
-	    <version>1.2.3</version>
-	    <scope>test</scope>
 	</dependency>
 	<dependency>
 	    <groupId>ch.qos.logback</groupId>
@@ -41,18 +40,49 @@
 	    <artifactId>jedis</artifactId>
 	    <version>3.1.0</version>
 	</dependency>
-	<dependency>
-      <groupId>org.zeromq</groupId>
-      <artifactId>jeromq</artifactId>
-      <version>0.5.1</version>
+    <dependency>
+      	<groupId>org.zeromq</groupId>
+      	<artifactId>jeromq</artifactId>
+      	<version>0.5.2-SNAPSHOT</version>
     </dependency>
-   </dependencies>
-   <build>
+	<dependency>
+    	<groupId>com.google.code.gson</groupId>
+    	<artifactId>gson</artifactId>
+    	<version>2.8.5</version>
+	</dependency>
+</dependencies>
+   	
+   	<build>
    		<plugins>
    			<plugin>
    				<artifactId>maven-surefire-plugin</artifactId>
    				<version>2.22.1</version>
    			</plugin>
+	      	<plugin>
+		        <groupId>org.codehaus.mojo</groupId>
+		        <artifactId>exec-maven-plugin</artifactId>
+		        <version>1.5.0</version>
+		       	<executions>
+		        	<execution>
+		                <id>master</id>
+		                <goals>
+		                    <goal>java</goal>
+		                </goals>
+		                <configuration>
+		                    <mainClass>crawlers.crawlers.Master</mainClass>
+		                </configuration>
+		            </execution>
+		            <execution>
+		                <id>slave</id>
+		                <goals>
+		                	<goal>java</goal>
+		                </goals>
+		                <configuration>
+		                    <mainClass>crawlers.crawlers.Slave</mainClass>
+		                </configuration>
+		            </execution>
+		        </executions> 
+	      	</plugin>
    		</plugins>
    </build>
 </project>

@@ -10,9 +10,17 @@ import org.zeromq.ZFrame;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
+import com.google.gson.Gson;
+
 
 public class Master {
 
+	
+	public static void main(String args[]) {
+		System.out.println("Master running");
+		new Master().init();	
+	}
+	
 	//Holds slaves whom ready for work
 	private Queue<Slave> queueOfSlaves;
 	//Router socket for Dealer-Router pattern
@@ -42,9 +50,10 @@ public class Master {
 		queueOfSlaves = new LinkedList<Slave>();
 		heartbeatInterval = all.HEARTBEAT_INTERVAL;
 	}
+
 	
 	//This return first available slave's address
-	public ZFrame getAvailableSlaves() {return queueOfSlaves.remove().getAddress();}
+	public String getAvailableSlaves() {return queueOfSlaves.remove().getAddress();}
 	
 	public void dispatch() {
 		//while there is URLs in frontier give them to slaves
@@ -57,11 +66,13 @@ public class Master {
 	
 	public void sendTask(String address){
 		ROUTER.sendMore(address);
-		ROUTER.send(_constructJsonWithEventAndBody("",""));
+		ROUTER.send(taskToBeDone, ZMQ.SNDMORE);
+		ROUTER.send(getUrlFromFrontier());
+		ROUTER.sendMore("");
 	}
 	
 	private String _constructJsonWithEventAndBody(String event, String body) {
-		return "";
+		return event + " " + body;
 	}
 	
 	//If url exit fetch it 
@@ -99,17 +110,14 @@ public class Master {
 		    		ZMsg message = ZMsg.recvMsg(ROUTER);
 		    		//if slave sent message of size 1 means it's ready for work
 		    		if(message.size() == 1)
-			    		insertSlave(message.unwrap());
+			    		insertSlave(ROUTER.recv(0).toString());
 		    		else {
 		    		//If header received from slave that would means its available for work otherwise it would be busy requesting a web page
-		    		insertSlave(message.unwrap());
+		    		insertSlave(ROUTER.recv(0).toString());
 		    		//Take action upon the event received
-		    		handleEvent(message.getFirst());
-		    		//Gets body content of the message
-		    		//TODO
-		    		ZMsg body = ZMsg.recvMsg(ROUTER);
+		    		handleEvent(ROUTER.recv(0).toString());
 		    		//Receiving a body means slave got the job done
-		    		handleDoneJob(body);
+		    		handleDoneJob(ROUTER.recv(0).toString());
 		    		//This life for debugging the content of message
 		    		message.dump(System.out);
 		    		}
@@ -120,19 +128,19 @@ public class Master {
 	}
 	
 	//Takes the event frame and take action upon it
-	public void handleEvent(ZFrame event) {
-		if(event.getString(ZMQ.CHARSET).equals(readyforTask)) {
+	public void handleEvent(String string) {
+		if(string.equals(readyforTask)) {
 			
 		}
 	}
 	
 	//When slave sends back response that means an crawled 
-	public void handleDoneJob(ZMsg body) {
+	public void handleDoneJob(String string) {
 		
 	}
 	
 	//Creates a new slave object for an address and enqueue it
-	public void insertSlave(ZFrame address){queueOfSlaves.add(new Slave(address));}
+	public void insertSlave(String address){queueOfSlaves.add(new Slave());}
 	
 	//TODO: override equal
 	//This remove slave that is ready for work

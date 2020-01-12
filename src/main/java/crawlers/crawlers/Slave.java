@@ -11,7 +11,7 @@ import org.zeromq.ZMsg;
 public class Slave {
 
 	public static void main(String args[]) {
-		System.out.println("SLave running");
+		System.out.println("Slave is up and running");
 		new Slave().init();	
 	}
 	
@@ -25,8 +25,6 @@ public class Slave {
 	private ZMQ.Socket SUB;
 	//to read from multiple sockets
 	private ZMQ.Poller poller;
-	//Expires at this time
-	private long expiration;
 	//This set to true if work not done yet
 	private boolean busy;
 	//Master will send heart beats every 5mscs
@@ -39,6 +37,8 @@ public class Slave {
 	private final String readyforWork = "002";
 	//event task is done
 	private final String finishedWork = "003";
+	//event task to be done
+	private final String workToBeDone = "004";
 	//Counter for liveness of master
     private int liveness;
 	//Address to bind-to for Dealer-Router locally
@@ -52,7 +52,6 @@ public class Slave {
 	protected Slave() {
         busy = false;
         liveness = livenessOfMaster;
-        busy = false;
         random = new Random(System.nanoTime());
 	}
 	
@@ -75,22 +74,22 @@ public class Slave {
 		    
 		    poller.register(DLR, ZMQ.Poller.POLLIN);
 		    poller.register(SUB, ZMQ.Poller.POLLIN); 
+		    
+		    establishConnectionToCache();
 
 		    while (true) {
-		    	ZMsg message = null;
 		    	//check for message in this interval
 		    	poller.poll(heartbeatInterval);
 		    	
 		    	//Received message contain work to be done from master
 		    	if(poller.pollin(0)) {
-		    		message = ZMsg.recvMsg(DLR);
-		    		doTask(message.getFirst().toString());
+		    		String event = DLR.recvStr();
+		    		String body = DLR.recvStr();
 		    	}
 		        
 		    	//Heart beat from master
 		    	if(poller.pollin(1)) {
 		    		String messageReceived = SUB.recvStr();
-		    		System.out.println("R: Heartbeat from master");
 
 		    		//If message from master is a heart beat handle it other wise 
 		    		if(messageReceived.equals(heartbeat))
@@ -111,33 +110,16 @@ public class Slave {
 	}
 	
 	//when received message not like what we expected
-	public void handleWrongMessage() {
-        System.out.println("Received: invalid message\n");
-	}
+	public void handleWrongMessage() {System.out.println("Received: invalid message\n");}
 	
 	//check if heart beat is correct message if true reset liveness if no call handleWrongMessage
 	public void handleHeartbeat(){
+		System.out.println("R: Heartbeat from master");
 		liveness = heartbeatInterval;
     	if(!busy)
-    		requestForWork();
-	}
-	
-	public long getExpiration() {
-		return expiration;
-	}
-	
-	public String getAddress() {
-		return address;
+    		sendRequestForWork();
 	}
 
-	//TODO: Repressing the Enum events as byte
-	//This sends event as byte asking for Work
-	public void requestWork() {
-		ZMsg request = new ZMsg();
-		request.add(address);
-		request.send(DLR);
-	}
-	
 	//When master dosen't send a heart beat for long time kill this whole thread
 	public void selfDestruction(ZContext context){
 		System.out.println("Self destructing...");
@@ -146,6 +128,12 @@ public class Slave {
 		System.exit(0);
 	}
 	
-	public void requestForWork() {DLR.send(readyforWork);}
+	public void establishConnectionToCache() {
+		
+	}
+	
+	public void sendRequestForWork() {System.out.println("work req sent");DLR.sendMore(readyforWork);DLR.send("");}
+	
+	public void sendFinishedWork() {}
 	
 }

@@ -1,28 +1,22 @@
 package crawlers.crawlers;
 
-import crawlers.configuration.all;
 import java.util.LinkedList;
 import java.util.Queue;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
-import org.zeromq.ZFrame;
 import org.zeromq.ZMQ;
-import org.zeromq.ZMsg;
-
-import com.google.gson.Gson;
-
 
 public class Master {
 
 	
 	public static void main(String args[]) {
-		System.out.println("Master running");
+		System.out.println("Master is up and running");
 		new Master().init();	
 	}
 	
-	//Holds slaves whom ready for work
-	private Queue<Slave> queueOfSlaves;
+	//Holds addresses of slaves whom ready for work
+	private Queue<String> queueOfSlaves;
 	//Router socket for Dealer-Router pattern
 	private ZMQ.Socket ROUTER;
 	//Publisher socket for Subscriber-Publisher pattern used to send heart beat to master
@@ -30,7 +24,7 @@ public class Master {
 	//to read from multiple sockets
 	private ZMQ.Poller poller;
 	//Time to wait before sending next heart beat
-	private int heartbeatInterval;
+	private final int heartbeatInterval = 5000;
 	//Time to send heart beat in msec
 	private long nextHeartbeat;
 	//event heart-beat
@@ -40,48 +34,34 @@ public class Master {
 	//event task is done
 	private final String finishedWork = "003";
 	//event task to be done
-	private final String taskToBeDone = "004";
+	private final String workToBeDone = "004";
 	//Address to bind-to for Dealer-Router locally
 	private final String routerAddress = "tcp://127.0.0.1:5555";
 	//Address to bind-to for Subscriber-Publisher locally
 	private final String publisherAddress = "tcp://*:5556";
-	//Subscr
-	public Master() {
-		queueOfSlaves = new LinkedList<Slave>();
-		heartbeatInterval = all.HEARTBEAT_INTERVAL;
-	}
+	
+	public Master() {queueOfSlaves = new LinkedList<String>();}
 
-	
-	//This return first available slave's address
-	public String getAvailableSlaves() {return queueOfSlaves.remove().getAddress();}
-	
-	public void dispatch() {
+	//Send work to all ready slaves
+	public void dispatchWork() {
 		//while there is URLs in frontier give them to slaves
-		while(queueOfSlaves.size() > 0) {
-			if(existUrlInFrontier()) {
-				//sendTask(getAvailableSlaves());
-			}
+		while(queueOfSlaves.size() > 0 && existUrlInFrontier()) {
+			sendWorkToThisAddress(getReadySlaveAddress());
 		}
 	}
 	
-	public void sendTask(String address){
-		ROUTER.sendMore(address);
-		ROUTER.send(taskToBeDone, ZMQ.SNDMORE);
-		ROUTER.send(getUrlFromFrontier());
-		ROUTER.sendMore("");
-	}
+	public String getReadySlaveAddress(){return queueOfSlaves.remove();}
 	
-	private String _constructJsonWithEventAndBody(String event, String body) {
-		return event + " " + body;
+	public void sendWorkToThisAddress(String address){
+		ROUTER.sendMore(address);
+		ROUTER.sendMore("X");
+		ROUTER.send("C");
 	}
 	
 	//If url exit fetch it 
 	public boolean existUrlInFrontier() {
-		return false;
+		return true;
 	}
-	
-	//This removes slaves from the queue if they are expired
-	public void killExpiredSlaves() {queueOfSlaves.removeIf(slave -> slave.getExpiration() > System.currentTimeMillis());}
 	
 	public void init() {
 		try (ZContext context = new ZContext()) {
@@ -104,39 +84,32 @@ public class Master {
 		    	
 		    	//if it's time to send heart beat send it
 		    	sendHearbeat();
-		    	
+		    	dispatchWork();
 		    	//message received from slave requesting for work
 		    	if(poller.pollin(0)) {
-		    		//The message received from slave should have three part first part is address
-		    		insertSlave(ROUTER.recvStr());
-		    		//second part is event type and third part should be handled by handleEvent method
-		    		handleEvent(ROUTER.recvStr(), ROUTER.recvStr());
+		    		//The message received from slave should have three part first part is address second part is event type and third part is body content
+		    		handleMessage(ROUTER.recvStr(), ROUTER.recvStr(), ROUTER.recvStr());
 		    	}
-		    	killExpiredSlaves();
 		     }
 		}
 	}
 	
 	//Takes the event frame and take action upon it
-	public void handleEvent(String event, String body) {
-		if(event.equals(readyforWork)) {
-			
-		}
+	public void handleMessage(String address, String event, String body) {
+		if(event.equals(readyforWork))
+			insertSlave(address);
+		else if(event.equals(finishedWork))
+			handleFinishedWork(body);
 	}
 	
 	//When slave sends back response that means an crawled 
-	public void handleDoneJob(String string) {
+	public void handleFinishedWork(String body) {
 		
 	}
 	
 	//Creates a new slave object for an address and enqueue it
-	public void insertSlave(String address){queueOfSlaves.add(new Slave());}
+	public void insertSlave(String address){queueOfSlaves.add(address);}
 	
-	//TODO: override equal
-	//This remove slave that is ready for work
-	public void removeSlave(Slave slave) {
-		//queueOfSlaves.remove(slave);
-	}
 	
 	//This needs to be sent to alert slaves that master a live and if any new subscriber haven't pushed in queue and in idle state 
 	public void sendHearbeat() {
@@ -153,5 +126,4 @@ public class Master {
 		return "";
 	}
 
-	
 }

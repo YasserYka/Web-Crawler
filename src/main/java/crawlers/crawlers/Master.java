@@ -34,13 +34,13 @@ public class Master {
 	//Time to send heart beat in msec
 	private long nextHeartbeat;
 	//event heart-beat
-	private final String heartbeat = "\001";
+	private final String heartbeat = "001";
 	//event ready-for-work;
-	private final String readyforTask = "\002";
+	private final String readyforWork = "002";
 	//event task is done
-	private final String finishedTask = "\003";
+	private final String finishedWork = "003";
 	//event task to be done
-	private final String taskToBeDone = "\004";
+	private final String taskToBeDone = "004";
 	//Address to bind-to for Dealer-Router locally
 	private final String routerAddress = "tcp://127.0.0.1:5555";
 	//Address to bind-to for Subscriber-Publisher locally
@@ -107,23 +107,10 @@ public class Master {
 		    	
 		    	//message received from slave requesting for work
 		    	if(poller.pollin(0)) {
-		    		/*The message is received from the crawler is consist of three frames [Header][Event][Body]
-		    			So recvMsg must be called three times
-		    			Header contain the address of the slave*/
-		    		ZMsg message = ZMsg.recvMsg(ROUTER);
-		    		//if slave sent message of size 1 means it's ready for work
-		    		if(message.size() == 1)
-			    		insertSlave(ROUTER.recv(0).toString());
-		    		else {
-		    		//If header received from slave that would means its available for work otherwise it would be busy requesting a web page
-		    		insertSlave(ROUTER.recv(0).toString());
-		    		//Take action upon the event received
-		    		handleEvent(ROUTER.recv(0).toString());
-		    		//Receiving a body means slave got the job done
-		    		handleDoneJob(ROUTER.recv(0).toString());
-		    		//This life for debugging the content of message
-		    		message.dump(System.out);
-		    		}
+		    		//The message received from slave should have three part first part is address
+		    		insertSlave(ROUTER.recvStr());
+		    		//second part is event type and third part should be handled by handleEvent method
+		    		handleEvent(ROUTER.recvStr(), ROUTER.recvStr());
 		    	}
 		    	killExpiredSlaves();
 		     }
@@ -131,8 +118,8 @@ public class Master {
 	}
 	
 	//Takes the event frame and take action upon it
-	public void handleEvent(String string) {
-		if(string.equals(readyforTask)) {
+	public void handleEvent(String event, String body) {
+		if(event.equals(readyforWork)) {
 			
 		}
 	}
@@ -156,6 +143,7 @@ public class Master {
 		//It's time to send heart beat to all subscriber
 		if(System.currentTimeMillis() > nextHeartbeat) {
 			PUB.send(heartbeat);
+			System.out.println("S: Heartbeat to slaves");
 			nextHeartbeat = System.currentTimeMillis() + heartbeatInterval;
 		}
 	}

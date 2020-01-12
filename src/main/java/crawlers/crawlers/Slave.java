@@ -31,14 +31,14 @@ public class Slave {
 	private boolean busy;
 	//Master will send heart beats every 5mscs
 	private final int heartbeatInterval = 5000;
-	//Liveness of the master (when we don't receive heart beat form master 3 times (3 heart beat intervals) means the master is down)
-	private final int livenessOfMaster = 3;
+	//Liveness of the master (when we don't receive heart beat form master 10 times (10 heart beat intervals) means the master is down)
+	private final int livenessOfMaster = 10;
 	//event heart-beat
-	private final String heartbeat = "\001";
+	private final String heartbeat = "001";
 	//event ready-for-work;
-	private final String readyforTask = "\002";
+	private final String readyforWork = "002";
 	//event task is done
-	private final String finishedTask = "\003";
+	private final String finishedWork = "003";
 	//Counter for liveness of master
     private int liveness;
 	//Address to bind-to for Dealer-Router locally
@@ -78,6 +78,7 @@ public class Slave {
 
 		    while (true) {
 		    	ZMsg message = null;
+		    	//check for message in this interval
 		    	poller.poll(heartbeatInterval);
 		    	
 		    	//Received message contain work to be done from master
@@ -88,17 +89,14 @@ public class Slave {
 		        
 		    	//Heart beat from master
 		    	if(poller.pollin(1)) {
-		    		System.out.println("heartbeat recived");
+		    		String messageReceived = SUB.recvStr();
+		    		System.out.println("R: Heartbeat from master");
 
-		    		message = ZMsg.recvMsg(SUB);
-		    		//Heart beat would have size = 1 (only one frame indicate liveness of slave)
-		    		if(message.size() != 1)
-		    			handleWrongMessage(message);
-		    		else {
-		    			handleHeartbeat(message);
-			    		//Send to Master address, don't response if busy working
-
-		    		}
+		    		//If message from master is a heart beat handle it other wise 
+		    		if(messageReceived.equals(heartbeat))
+		    			handleHeartbeat();
+		    		else
+		    			handleWrongMessage();
 		    	}else
 		    		//if liveness equal zero means master is down call selfDestruction
 		    		if(--liveness == 0)
@@ -113,20 +111,15 @@ public class Slave {
 	}
 	
 	//when received message not like what we expected
-	public void handleWrongMessage(ZMsg message) {
+	public void handleWrongMessage() {
         System.out.println("Received: invalid message\n");
-        message.dump(System.out);
 	}
 	
 	//check if heart beat is correct message if true reset liveness if no call handleWrongMessage
-	public void handleHeartbeat(ZMsg message){
-		if(heartbeat.equals(new String(message.getFirst().getData(), ZMQ.CHARSET))) {
-			liveness = heartbeatInterval;
-    		if(!busy)
-    			createAndSendMessage(readyforTask, "");
-		}
-		else
-			handleWrongMessage(message);
+	public void handleHeartbeat(){
+		liveness = heartbeatInterval;
+    	if(!busy)
+    		requestForWork();
 	}
 	
 	public long getExpiration() {
@@ -153,11 +146,6 @@ public class Slave {
 		System.exit(0);
 	}
 	
-	public void createAndSendMessage(String event, String body) {
-		ZMsg message = new ZMsg();
-		message.add(address);
-		message.add(event);
-		message.add(body);
-	}
+	public void requestForWork() {DLR.send(readyforWork);}
 	
 }

@@ -81,7 +81,7 @@ public class Slave {
 		    	//check for message in this interval
 		    	poller.poll(heartbeatInterval);
 		    	
-		    	//Received message contain work to be done from master
+		    	//Received message from master via dealer
 		    	if(poller.pollin(0)) {
 		    		String event = DLR.recvStr();
 		    		String body = DLR.recvStr();
@@ -105,8 +105,8 @@ public class Slave {
 	}
 	
 	//Gets URL and start crawling
-	public void doTask(String url) {
-		
+	public void crawle(String url) {
+		busy = true;
 	}
 	
 	//when received message not like what we expected
@@ -132,7 +132,11 @@ public class Slave {
 		
 	}
 	
-	public void sendRequestForWork() {System.out.println("work req sent");DLR.sendMore(readyforWork);DLR.send("");}
+	public void sendRequestForWork() {
+		DLR.sendMore(readyforWork);
+		DLR.send("");
+		System.out.println("S: REQUEST FOR WORK");
+	}
 	
 	public void sendFinishedWork() {}
 	

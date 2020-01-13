@@ -54,8 +54,12 @@ public class Master {
 	
 	public void sendWorkToThisAddress(String address){
 		ROUTER.sendMore(address);
-		ROUTER.sendMore("X");
-		ROUTER.send("C");
+		//Send event work-to-be-done
+		ROUTER.sendMore("EVENT");
+		//TODO: but the body to be sent in queue then send it index to slave
+		//Send body of message
+		ROUTER.send("BODY");
+		System.out.printf("S: WORK SENT TO %s", address);
 	}
 	
 	//If url exit fetch it 
@@ -84,8 +88,11 @@ public class Master {
 		    	
 		    	//if it's time to send heart beat send it
 		    	sendHearbeat();
+		    	
+		    	//If there is a URL in frontier dispatch it to available slave
 		    	dispatchWork();
-		    	//message received from slave requesting for work
+		    	
+		    	//message received from slave
 		    	if(poller.pollin(0)) {
 		    		//The message received from slave should have three part first part is address second part is event type and third part is body content
 		    		handleMessage(ROUTER.recvStr(), ROUTER.recvStr(), ROUTER.recvStr());
@@ -116,7 +123,7 @@ public class Master {
 		//It's time to send heart beat to all subscriber
 		if(System.currentTimeMillis() > nextHeartbeat) {
 			PUB.send(heartbeat);
-			System.out.println("S: Heartbeat to slaves");
+			System.out.println("S: HEARTBEAT TO SLAVE");
 			nextHeartbeat = System.currentTimeMillis() + heartbeatInterval;
 		}
 	}

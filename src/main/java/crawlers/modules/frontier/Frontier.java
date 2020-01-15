@@ -1,4 +1,4 @@
-package crawlers.modules;
+package crawlers.modules.frontier;
 
 
 import java.util.HashSet;

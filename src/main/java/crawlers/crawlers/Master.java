@@ -50,7 +50,10 @@ public class Master {
 		}
 	}
 	
-	public String getReadySlaveAddress(){return queueOfSlaves.remove();}
+	public String getReadySlaveAddress(){
+		System.out.println("SLAVE DEQUEUED FROM THE QUEUE");
+		return queueOfSlaves.remove();
+	}
 	
 	public void sendWorkToThisAddress(String address){
 		ROUTER.sendMore(address);
@@ -59,7 +62,7 @@ public class Master {
 		//TODO: but the body to be sent in queue then send it index to slave
 		//Send body of message
 		ROUTER.send("BODY");
-		System.out.printf("S: WORK SENT TO %s", address);
+		System.out.printf("S: WORK SENT TO SLAVE %s", address);
 	}
 	
 	//If url exit fetch it 
@@ -103,6 +106,9 @@ public class Master {
 	
 	//Takes the event frame and take action upon it
 	public void handleMessage(String address, String event, String body) {
+		
+		System.out.printf("R: MESSAGE RECEIVED FROM SLAVE %s", address);
+		
 		if(event.equals(readyforWork))
 			insertSlave(address);
 		else if(event.equals(finishedWork))
@@ -115,7 +121,10 @@ public class Master {
 	}
 	
 	//Creates a new slave object for an address and enqueue it
-	public void insertSlave(String address){queueOfSlaves.add(address);}
+	public void insertSlave(String address){
+		System.out.println("SLAVE INSERTED TO THE QUEUE");
+		queueOfSlaves.add(address);
+	}
 	
 	
 	//This needs to be sent to alert slaves that master a live and if any new subscriber haven't pushed in queue and in idle state 

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class frontend {
+public class Frontend {
 	
 	//Each queue well be assigned a value indicates it priority (0 is the highest priority)
 	private HashMap<Integer, Queue<String>> queues;
@@ -15,7 +15,7 @@ public class frontend {
 	//Variables for Pyramid-based dequeuing
 	private int pyramidLimit, pyramidHolder;
 	
-	public frontend() {
+	public Frontend() {
 		queues = new HashMap<Integer, Queue<String>>();
 		numberOfQueues = pyramidLimit = pyramidHolder = 0;
 	}

@@ -1,14 +1,22 @@
 package crawlers.url;
 
-import java.util.regex.Pattern;
+public class URL {
 
-public enum URL{
-		Title("<title>(.*?)</title>"),
-		Src("src=[\"|'](.*?)[\"|']"),
-		Href("href=[\"|'](.*?)[\"|']");
+	private String domainName;
+	private String url;
 	
-		private Pattern pattern;
+	public String getDomainName() {
+		return domainName;
+	}
+	public void setDomainName(String domainName) {
+		this.domainName = domainName;
+	}
+	public String getUrl() {
+		return url;
+	}
+	public void setUrl(String url) {
+		this.url = url;
+	}
 	
-		private URL(String pattern) {this.pattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);}
-		public Pattern getPattern() {return pattern;}
+	
 }

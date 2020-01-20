@@ -8,7 +8,7 @@ public class Lexer{
 
 	public static List<String> extractURLs(String html){
 		List<String> urls = new ArrayList<String>(); 
-		for(URL url : URL.values()){
+		for(Regex url : Regex.values()){
 			Matcher matcher = url.getPattern().matcher(html);
 			while(matcher.find())
 				urls.add(matcher.group(1));

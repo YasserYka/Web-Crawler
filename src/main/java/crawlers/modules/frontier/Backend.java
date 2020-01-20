@@ -31,8 +31,7 @@ public class Backend {
 		else if(numberOfQueues <= maxNumberOfQueues)
 			queues.put(url.getDomainName(), initializeNewQueue());
 		else
-			try {
-				throw new ExceedNumberOfQueues();}catch(ExceedNumberOfQueues e) {/* TODO:Log it*/e.printStackTrace();}
+			try {throw new ExceedNumberOfQueues();}catch(ExceedNumberOfQueues e) {/* TODO:Log it*/e.printStackTrace();}
 	}
 	
 	public LinkedList<String> initializeNewQueue() {return new LinkedList<String>();}

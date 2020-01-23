@@ -1,12 +1,14 @@
 package crawlers.crawlers;
 
+import java.net.InetAddress;
 import java.util.Random;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
-import org.zeromq.ZFrame;
 import org.zeromq.ZMQ;
-import org.zeromq.ZMsg;
+
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.HttpHeaders;
 
 public class Slave {
 
@@ -139,5 +141,13 @@ public class Slave {
 	}
 	
 	public void sendFinishedWork() {}
+	
+	public void makeRequest(InetAddress address) {
+		//getHostAddress convert InetAddress to string presentation
+		HttpGet request = new HttpGet(address.getHostAddress());
+		
+		request.addHeader(HttpHeaders.USER_AGENT, "Googlebot");
+	}
+			
 	
 }

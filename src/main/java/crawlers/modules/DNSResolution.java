@@ -15,7 +15,7 @@ public class DNSResolution {
 		
 	}
 	
-	public InetAddress resolve(String hostname) {
+	public InetAddress resolveHostnameToIP(String hostname) {
 		InetAddress address = null;
 		try {address = resolver.resolve(hostname).get();} catch (InterruptedException | ExecutionException e) {/*TODO: LOG IT*/e.printStackTrace();}
 		return address;

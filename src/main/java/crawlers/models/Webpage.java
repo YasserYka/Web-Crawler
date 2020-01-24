@@ -1,4 +1,4 @@
-package crawlers.util;
+package crawlers.models;
 
 
 import java.util.ArrayList;

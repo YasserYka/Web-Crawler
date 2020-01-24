@@ -1,8 +1,11 @@
 package crawlers.url;
 
+import crawlers.util.Lexer;
+
 public class Extract{
 
 	public void extract(String html) {
+		Regex.values();
 		Lexer.extractURLs(html);
 	}
 	

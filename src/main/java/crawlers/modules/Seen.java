@@ -21,4 +21,10 @@ public class Seen {
 	}
 	
 	public void shutdown() {redisson.shutdown();}
+	
+	//Adds
+	public void Add(String contnet) {
+		if(!bloomFilter.contains(contnet))
+			bloomFilter.add(contnet);
+	}
 }

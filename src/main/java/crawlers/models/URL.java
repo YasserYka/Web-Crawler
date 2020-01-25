@@ -1,4 +1,4 @@
-package crawlers.url;
+package crawlers.models;
 
 public class URL {
 

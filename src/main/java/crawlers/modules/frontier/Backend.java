@@ -1,9 +1,10 @@
 package crawlers.modules.frontier;
 
-import crawlers.url.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
+
+import crawlers.models.URL;
 
 public class Backend {
 	

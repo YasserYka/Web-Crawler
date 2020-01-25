@@ -1,5 +1,6 @@
 package crawlers.crawlers;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Random;
 
@@ -7,8 +8,19 @@ import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+
+import org.redisson.Redisson;
+import org.redisson.api.RMap;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
 
 public class Slave {
 
@@ -49,7 +61,14 @@ public class Slave {
 	private final String subscriberAddress = "tcp://localhost:5556";
 	//Used to generate unique identity
 	private Random random;
-
+	//Instance of Redis
+	private RedissonClient redisson;
+	//Redis based distributed Map
+	private RMap<String, String> cache;
+	//Counter for RMap
+	private int counter;
+	//Apache's http client instance
+    private  CloseableHttpClient httpClient;
 
 	protected Slave() {
         busy = false;
@@ -131,7 +150,8 @@ public class Slave {
 	}
 	
 	public void establishConnectionToCache() {
-		
+		redisson = Redisson.create(cacheConfiguration());
+		cache = redisson.getMap("test");
 	}
 	
 	public void sendRequestForWork() {
@@ -140,14 +160,35 @@ public class Slave {
 		System.out.println("S: REQUEST FOR WORK");
 	}
 	
-	public void sendFinishedWork() {}
+	public void handleFinishedWork(String conenet) {
+		cache.fastPutAsync(DLR.getIdentity().toString() + counter, conenet);
+	}
 	
-	public void makeRequest(InetAddress address) {
+	public Config cacheConfiguration() {
+		Config config = new Config();
+		config.useSingleServer().setAddress("127.0.0.1:6379");
+		return config;
+	}
+	
+	public String makeRequest(InetAddress address) {
 		//getHostAddress convert InetAddress to string presentation
 		HttpGet request = new HttpGet(address.getHostAddress());
+		httpClient = HttpClients.createDefault();
+        HttpEntity entity = null;
+		String body = "";
 		
 		request.addHeader(HttpHeaders.USER_AGENT, "Googlebot");
+		
+        try (CloseableHttpResponse response = httpClient.execute(request)) {
+        	if(response.getStatusLine().getStatusCode() != 200)
+        		entity = response.getEntity();
+        	if(entity != null)
+        		body = EntityUtils.toString(entity);
+		}
+        catch(ClientProtocolException cpe) {/*TODO: LOG IT*/}
+        catch (IOException ie) {/*TODO:LOG IT*/}
+        
+        return body;
 	}
-			
 	
 }

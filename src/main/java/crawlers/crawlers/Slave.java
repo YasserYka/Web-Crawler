@@ -127,7 +127,36 @@ public class Slave {
 	
 	//Gets URL and start crawling
 	public void crawle(String url) {
+		
+		//TODO: how to contact the DNS resolver RMI maybe?
+		InetAddress address = null; //Represent address from DNS resolver
+		//make get request
+		String document = makeRequest(address);
+		
+		String key = generateKey();
+		
 		busy = true;
+		
+		addToCache(key, document);
+		
+		handleFinishedWork(key);
+		
+	}
+	
+	public String generateKey() {
+		return DLR.getIdentity().toString() + counter++;
+	}
+	
+	public void addToCache(String key, String document) {
+		cache.fastPutAsync(key, document);
+	}
+	
+	//Takes key of where the document was stored in cache
+	public void handleFinishedWork(String key) {
+		DLR.sendMore(finishedWork);
+		DLR.sendMore(key);
+		DLR.send("");
+		System.out.println("S: FINISHED WORK SENT");
 	}
 	
 	//when received message not like what we expected
@@ -135,7 +164,7 @@ public class Slave {
 	
 	//check if heart beat is correct message if true reset liveness if no call handleWrongMessage
 	public void handleHeartbeat(){
-		System.out.println("R: Heartbeat from master");
+		System.out.println("R: HEARTBEAT RECIVED");
 		liveness = heartbeatInterval;
     	if(!busy)
     		sendRequestForWork();
@@ -160,16 +189,13 @@ public class Slave {
 		System.out.println("S: REQUEST FOR WORK");
 	}
 	
-	public void handleFinishedWork(String conenet) {
-		cache.fastPutAsync(DLR.getIdentity().toString() + counter, conenet);
-	}
-	
 	public Config cacheConfiguration() {
 		Config config = new Config();
 		config.useSingleServer().setAddress("127.0.0.1:6379");
 		return config;
 	}
 	
+	//Gets host-name's as IntetAddress format then makes get request and returns it's body as String
 	public String makeRequest(InetAddress address) {
 		//getHostAddress convert InetAddress to string presentation
 		HttpGet request = new HttpGet(address.getHostAddress());

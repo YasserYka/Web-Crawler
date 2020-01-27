@@ -1,5 +1,5 @@
 # Distributed Web Crawlers 
-The purpse of this project is to learn about distrbuted systemsa and to maintain large project like this
+This project is research-based, meaning what I've implemented so far is what I got from reading books or online papers. I don't know if what I'm doig is correct or not but what I know is that I like what I'm doing and I learned a lot from it.
 
 # Usage 
 With maven installed, run

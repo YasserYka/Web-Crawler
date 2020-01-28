@@ -7,6 +7,8 @@ import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
+import crawlers.modules.exclusion.RobotTXT;
+
 public class Master {
 
 	

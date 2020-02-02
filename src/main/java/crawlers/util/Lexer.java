@@ -8,6 +8,7 @@ import crawlers.url.Regex;
 
 public class Lexer{
 
+	//Gets a HTML document and extract URLs and returns it as List
 	public static List<String> extractURLs(String document){
 		List<String> urls = new ArrayList<String>(); 
 		for(Regex url : Regex.values()){
@@ -18,6 +19,7 @@ public class Lexer{
 		return urls;
 	}
 	
+	//Takes Robot.txt file and parse it and returns disallowed URI
 	public static List<String> extractExcludedPaths(String file){
 		List<String> urls = new ArrayList<String>(); 
 		for(Disallow url : Disallow.values()){

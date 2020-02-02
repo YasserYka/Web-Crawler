@@ -1,5 +1,6 @@
 package crawlers.modules;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class RelativeUrlResolver {
@@ -35,4 +36,13 @@ public class RelativeUrlResolver {
 	private String previousDirectory(String url) {
 		return null;
 	}
-}
+	
+	//Iterate through URLs and turn every relative to absolute URL
+	public static void drop(List<String> urls) {
+		int lengthOfUrls = urls.size(), i;
+		String url;
+		
+		for(i = 0; i < lengthOfUrls; i++) {
+			//Resolve if need to be resolved
+		}
+	}}

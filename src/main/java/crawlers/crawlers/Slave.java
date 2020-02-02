@@ -201,20 +201,24 @@ public class Slave {
 		HttpGet request = new HttpGet(address.getHostAddress());
 		httpClient = HttpClients.createDefault();
         HttpEntity entity = null;
-		String body = "";
+		String content = "";
 		
 		request.addHeader(HttpHeaders.USER_AGENT, "Googlebot");
 		
         try (CloseableHttpResponse response = httpClient.execute(request)) {
-        	if(response.getStatusLine().getStatusCode() != 200)
+        	response.getAllHeaders().toString();
+        	if(response.getStatusLine().getStatusCode() != 200) {
         		entity = response.getEntity();
+        		content = response.getAllHeaders().toString();
+        	}
+        		
         	if(entity != null)
-        		body = EntityUtils.toString(entity);
+        		content += EntityUtils.toString(entity);
 		}
         catch(ClientProtocolException cpe) {/*TODO: LOG IT*/}
         catch (IOException ie) {/*TODO:LOG IT*/}
         
-        return body;
+        return content;
 	}
 	
 }

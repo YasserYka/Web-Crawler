@@ -8,10 +8,10 @@ import crawlers.url.Regex;
 
 public class Lexer{
 
-	public static List<String> extractURLs(String html){
+	public static List<String> extractURLs(String document){
 		List<String> urls = new ArrayList<String>(); 
 		for(Regex url : Regex.values()){
-			Matcher matcher = url.getPattern().matcher(html);
+			Matcher matcher = url.getPattern().matcher(document);
 			while(matcher.find())
 				urls.add(matcher.group(1));
 		}

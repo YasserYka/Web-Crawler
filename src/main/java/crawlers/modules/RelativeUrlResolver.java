@@ -1,10 +1,15 @@
 package crawlers.modules;
 
+import java.util.regex.Pattern;
+
 public class RelativeUrlResolver {
+	
+	private static final Pattern BASEIT_PATTERN = null;
 
 	/*
 	 * Three cases should be handled differently 
-	 * Relative URL start with '/', start with "./", start with "../"
+	 * Relative URL start with '/', start with "./", start with "../" or start with non of them (that should be handled same as "./" but appends a slash to it)
+	 * "../" should be called recursively because it may contain more than one of those in relative URL
 	*/
 	public String resolve(String relative, String base) {
 		String resolved = null;
@@ -21,7 +26,13 @@ public class RelativeUrlResolver {
 	
 	//Takes full URL and returns it without file-name in path
 	//Example http://www.notMaliciousAtAll.com/page/fooling.html it should return http://www.notMaliciousAtAll.com/page/
-	private String currentDirectury(String url) {
+	private String currentDirectory(String url) {
+		return null;
+	}
+	
+	//Takes full URL and returns it by deleting file-name plus current directory
+	//Example http://www.notMaliciousAtAll.com/page/anotherpage/fooling.html it should return http://www.notMaliciousAtAll.com/page/
+	private String previousDirectory(String url) {
 		return null;
 	}
 }

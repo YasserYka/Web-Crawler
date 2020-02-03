@@ -6,7 +6,7 @@ import crawlers.modules.filter.Filter;
 import crawlers.util.Lexer;
 
 //This should take the document from the master and operate on it using modules
-public class chain {
+public class Chain {
 	
 	public void process(String document) {
 		

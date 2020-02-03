@@ -7,16 +7,18 @@ import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
-import crawlers.modules.exclusion.RobotTXT;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Master {
 
 	
 	public static void main(String args[]) {
-		System.out.println("Master is up and running");
+		logger.trace("DISPATCHER IS UP AND RUNNING");
 		new Master().init();	
 	}
 	
+    private static final Logger logger = LoggerFactory.getLogger(Master.class);
 	//Holds addresses of slaves whom ready for work
 	private Queue<String> queueOfSlaves;
 	//Router socket for Dealer-Router pattern
@@ -53,7 +55,7 @@ public class Master {
 	}
 	
 	public String getReadySlaveAddress(){
-		System.out.println("SLAVE DEQUEUED FROM THE QUEUE");
+		logger.trace("SLAVE DEQUEUED FROM THE QUEUE");
 		return queueOfSlaves.remove();
 	}
 	
@@ -64,7 +66,7 @@ public class Master {
 		//TODO: but the body to be sent in queue then send it index to slave
 		//Send body of message
 		ROUTER.send("BODY");
-		System.out.printf("S: WORK SENT TO SLAVE %s", address);
+		logger.trace("WORK SENT TO SLAVE {}", address);
 	}
 	
 	//If url exit fetch it 
@@ -90,7 +92,6 @@ public class Master {
 		      while (true) {
 		    	  
 		    	poller.poll(heartbeatInterval);
-		    	
 		    	//if it's time to send heart beat send it
 		    	sendHearbeat();
 		    	
@@ -109,7 +110,7 @@ public class Master {
 	//Takes the event frame and take action upon it
 	public void handleMessage(String address, String event, String body) {
 		
-		System.out.printf("R: MESSAGE RECEIVED FROM SLAVE %s", address);
+		logger.trace("R: MESSAGE RECEIVED FROM SLAVE {}", address);
 		
 		if(event.equals(readyforWork))
 			insertSlave(address);
@@ -124,7 +125,7 @@ public class Master {
 	
 	//Creates a new slave object for an address and enqueue it
 	public void insertSlave(String address){
-		System.out.println("SLAVE INSERTED TO THE QUEUE");
+		logger.trace("SLAVE REGISTERED IN QUEUE WITH ADDRESS", address);
 		queueOfSlaves.add(address);
 	}
 	
@@ -134,7 +135,7 @@ public class Master {
 		//It's time to send heart beat to all subscriber
 		if(System.currentTimeMillis() > nextHeartbeat) {
 			PUB.send(heartbeat);
-			System.out.println("S: HEARTBEAT TO SLAVE");
+			logger.trace("S: HEARTBEAT TO SLAVE");
 			nextHeartbeat = System.currentTimeMillis() + heartbeatInterval;
 		}
 	}

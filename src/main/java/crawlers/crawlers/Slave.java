@@ -21,16 +21,17 @@ import org.redisson.Redisson;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Slave {
 
 	public static void main(String args[]) {
-		System.out.println("Slave is up and running");
+		logger.trace("THE CRAWLER IS UP AND RUNNING");
 		new Slave().init();	
 	}
 	
-	//TODO: set user-agent header to googlebot or any other crawler 
-	
+    private static final Logger logger = LoggerFactory.getLogger(Slave.class);
 	//Address of slave
 	private String address;
 	//Dealer socket for Dealer-Router pattern
@@ -86,6 +87,7 @@ public class Slave {
 		    //Set identity for master
 		    address = String.format("%04X-%04X", random.nextInt(), random.nextInt());
 		    DLR.setIdentity(address.getBytes(ZMQ.CHARSET));
+		    logger.trace("ADDRESS CREATED %s", address);
 		    
 		    //Sub subscribe to all kind of message of master (disable filtering)
 		    SUB.subscribe(ZMQ.SUBSCRIPTION_ALL);
@@ -116,7 +118,7 @@ public class Slave {
 		    		if(messageReceived.equals(heartbeat))
 		    			handleHeartbeat();
 		    		else
-		    			handleWrongMessage();
+		    			handleWrongMessage(messageReceived);
 		    	}else
 		    		//if liveness equal zero means master is down call selfDestruction
 		    		if(--liveness == 0)
@@ -156,11 +158,11 @@ public class Slave {
 		DLR.sendMore(finishedWork);
 		DLR.sendMore(key);
 		DLR.send("");
-		System.out.println("S: FINISHED WORK SENT");
+		logger.trace("FINISHED WORK SENT");
 	}
 	
 	//when received message not like what we expected
-	public void handleWrongMessage() {System.out.println("Received: invalid message\n");}
+	public void handleWrongMessage(String messageReceived) {logger.error("INVALID MESSAGE RECEIVED {}", messageReceived);}
 	
 	//check if heart beat is correct message if true reset liveness if no call handleWrongMessage
 	public void handleHeartbeat(){
@@ -172,7 +174,7 @@ public class Slave {
 
 	//When master dosen't send a heart beat for long time kill this whole thread
 	public void selfDestruction(ZContext context){
-		System.out.println("Self destructing...");
+		logger.trace("OPERATING SELF DESTRUCTION");
 		context.destroySocket(DLR);
 		context.destroySocket(SUB);
 		System.exit(0);
@@ -186,7 +188,7 @@ public class Slave {
 	public void sendRequestForWork() {
 		DLR.sendMore(readyforWork);
 		DLR.send("");
-		System.out.println("S: REQUEST FOR WORK");
+		logger.trace("REQUEST FOR WORK SENT");
 	}
 	
 	public Config cacheConfiguration() {
@@ -206,7 +208,11 @@ public class Slave {
 		request.addHeader(HttpHeaders.USER_AGENT, "Googlebot");
 		
         try (CloseableHttpResponse response = httpClient.execute(request)) {
+        	
+        	logger.trace("HTTP REQUEST HAS BEEN SENT TO {}", address.getHostAddress());
+        	
         	response.getAllHeaders().toString();
+        	
         	if(response.getStatusLine().getStatusCode() != 200) {
         		entity = response.getEntity();
         		content = response.getAllHeaders().toString();
@@ -215,8 +221,8 @@ public class Slave {
         	if(entity != null)
         		content += EntityUtils.toString(entity);
 		}
-        catch(ClientProtocolException cpe) {/*TODO: LOG IT*/}
-        catch (IOException ie) {/*TODO:LOG IT*/}
+        catch(ClientProtocolException cpe) {logger.error("SOMETHING WENT WORNG {}",cpe);}
+        catch (IOException ie) {logger.error("SOMETHING WENT WORNG {}",ie);}
         
         return content;
 	}

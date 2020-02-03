@@ -1,12 +1,11 @@
 package crawlers.modules.exclusion;
 
 import java.util.List;
-
 import crawlers.modules.DNSResolution;
-import crawlers.util.Lexer;
 import crawlers.util.MakeRequest;
 
 public class RobotTXT {
+	
 	
 	private static final String ROBOT_TXT_PATH = "/robots.txt";
 	
@@ -16,7 +15,7 @@ public class RobotTXT {
 	}
 	
 	public static List<String> extractDisallowedPaths(String robotTxtFile){
-		List<String> paths = Lexer.extractExcludedPaths(robotTxtFile);
+		List<String> paths = ExclusionLexer.extract(robotTxtFile);
 		return paths;
 	}
 }

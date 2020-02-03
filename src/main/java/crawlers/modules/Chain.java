@@ -3,7 +3,7 @@ package crawlers.modules;
 import java.util.List;
 
 import crawlers.modules.filter.Filter;
-import crawlers.util.Lexer;
+import crawlers.url.UrlLexer;
 
 //This should take the document from the master and operate on it using modules
 public class Chain {
@@ -11,7 +11,7 @@ public class Chain {
 	public void process(String document) {
 		
 		//Parsing the 
-		List<String> urls = Lexer.extractURLs(document);
+		List<String> urls = UrlLexer.extractURLs(document);
 		
 		//TODO: call relative resolver here
 		
@@ -21,7 +21,7 @@ public class Chain {
 		//Drop URLs that are out of scope
 		Filter.drop(urls);
 		
-		
+		//TODO: call exclusion filter here
 		
 	}
 

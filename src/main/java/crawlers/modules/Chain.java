@@ -8,12 +8,13 @@ import crawlers.url.UrlLexer;
 //This should take the document from the master and operate on it using modules
 public class Chain {
 	
-	public void process(String document) {
+	public void process(String document, String urlOfDocuemnt) {
 		
 		//Parsing the 
 		List<String> urls = UrlLexer.extractURLs(document);
 		
 		//TODO: call relative resolver here
+		RelativeUrlResolver.normalize(urlOfDocuemnt, urls);
 		
 		//Drop seen URLs
 		Duplicate.drop(urls);

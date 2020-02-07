@@ -13,8 +13,8 @@ public class ExclusionLexer {
 	public static List<String> extract(String file){
 		List<String> urls = new ArrayList<String>(); 
 		Matcher matcher = DISALLOW_PATTERN.matcher(file);
-			while(matcher.find())
-				urls.add(matcher.group(1));
+		while(matcher.find())
+			urls.add(matcher.group(1));
 		return urls;
 	}
 }

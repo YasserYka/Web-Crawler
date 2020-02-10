@@ -8,7 +8,6 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.resolver.ResolvedAddressTypes;
 import io.netty.resolver.dns.DnsNameResolver;
 import io.netty.resolver.dns.DnsNameResolverBuilder;
-import jodd.util.LoopIterator;
 
 public class DNSResolution {
 		

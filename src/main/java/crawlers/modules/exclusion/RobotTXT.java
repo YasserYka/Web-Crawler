@@ -10,12 +10,18 @@ public class RobotTXT {
 	
 	//TODO: override apache's DNS resolver
 	
-	public static void getRobotsTxt(String domainName){
-		String content = MakeRequest.getContentOf(domainName, ROBOT_TXT_PATH);
+	public static String getRobotsTxt(String domainName){
+		String content = null;
+		//Sends head request to check if it's exist
+		if(MakeRequest.isFound(domainName, ROBOT_TXT_PATH)) {
+			//Send get request to get the content body
+			content = MakeRequest.getContentOf(domainName, ROBOT_TXT_PATH);
+		}
+		return content;
 	}
 	
-	public static List<String> extractDisallowedPaths(String robotTxtFile){
-		List<String> paths = ExclusionLexer.extract(robotTxtFile);
+	public static List<String> extractDisallowedPaths(String content){
+		List<String> paths = ExclusionLexer.extract(content);
 		return paths;
 	}
 }

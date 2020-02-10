@@ -9,6 +9,7 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -59,7 +60,7 @@ public class MakeRequest {
 		return get(uri);
 	}
 	
-	private static URI buildUri(String ip, String path) {
+	public static URI buildUri(String ip, String path) {
 		URIBuilder uri = null;
 		try {
 			uri = new URIBuilder();
@@ -70,5 +71,31 @@ public class MakeRequest {
 		return null;
 	}
 	
+	private static boolean head(URI uri) {
+	    httpClient = HttpClients.createDefault();
+
+		HttpHead request = null;
+        
+        try{
+			request = new HttpHead(uri);
+			request.addHeader(HttpHeaders.USER_AGENT, "Googlebot");
+			
+			CloseableHttpResponse response = httpClient.execute(request);
+			if(response.getStatusLine().getStatusCode() == 200)
+				return true;
+        }
+        catch(ClientProtocolException cpe) {cpe.printStackTrace();}
+        catch (IOException ie) {ie.printStackTrace();}
+        
+        return false;
+	}
 	
+	//Sends head request
+	public static boolean isFound(String domainName, String path) {
+		String address = DNSResolution.resolveHostnameToIP(domainName).getHostAddress();
+		
+		URI uri = buildUri(address, path);
+		
+		return head(uri);
+	}
 }

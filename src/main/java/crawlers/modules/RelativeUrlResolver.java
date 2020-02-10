@@ -39,6 +39,7 @@ public class RelativeUrlResolver {
 		else if(relative.startsWith("../")) {
 			resolved = previousDirectory(base) + relative;
 		}
+		else if(relative.startsWith("#")) {/*TODO: Idk how I'm gonna handle this yet*/}
 		else {
 			resolved = currentDirectory(base) + '/' +relative;
 		}

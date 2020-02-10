@@ -17,14 +17,14 @@ public class Chain {
 		//TODO: call relative resolver here
 		RelativeUrlResolver.normalize(urlOfDocuemnt, urls);
 		
-		//Drop seen URLs
-		Duplicate.drop(urls);
-		
 		//Drop URLs that are out of scope
 		Filter.drop(urls);
 		
 		//Fetch robots.txt file from URL and drop excluded URLs
 		RobotTXT.filter(urlOfDocuemnt, urls);
+		
+		//Drop seen URLs
+		Seen.filter(urls);
 		
 		//If some URLs survived put them in frontier
 		if(urls.size() > 0)

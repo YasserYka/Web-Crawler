@@ -8,6 +8,7 @@ import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
+import crawlers.modules.Seen;
 import crawlers.modules.exclusion.RobotTXT;
 
 import org.slf4j.Logger;

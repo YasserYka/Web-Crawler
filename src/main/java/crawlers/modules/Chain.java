@@ -23,8 +23,16 @@ public class Chain {
 		//Drop URLs that are out of scope
 		Filter.drop(urls);
 		
-		//TODO: call exclusion filter here
+		//Fetch robots.txt file from URL and drop excluded URLs
 		RobotTXT.filter(urlOfDocuemnt, urls);
+		
+		//If some URLs survived put them in frontier
+		if(urls.size() > 0)
+			addUrlsToFrontier(urls);
+	}
+	
+	private static void addUrlsToFrontier(List<String> urls) {
+		
 	}
 
 }

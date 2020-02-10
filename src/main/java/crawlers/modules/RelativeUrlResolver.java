@@ -33,6 +33,15 @@ public class RelativeUrlResolver {
 			if(based != null)
 				resolved = baseIt(base) + relative;
 		}
+		else if(relative.startsWith("./")) {
+			resolved = currentDirectory(base) + relative;
+		}
+		else if(relative.startsWith("../")) {
+			resolved = previousDirectory(base) + relative;
+		}
+		else {
+			resolved = currentDirectory(base) + '/' +relative;
+		}
 		return resolved;
 	}
 	
@@ -44,8 +53,8 @@ public class RelativeUrlResolver {
 	}
 	
 	//Takes full URL and returns it without file-name in path
-	//Example http://www.notMaliciousAtAll.com/page/fooling.html it should return http://www.notMaliciousAtAll.com/page/
-	private String currentDirectory(String url) {
+	//Example http://www.notMaliciousAtAll.com/page/fooling.html it should return http://www.notMaliciousAtAll.com/page
+	private static String currentDirectory(String url) {
 		int lengthOfUrl = url.length(), i, lastSlash = 0;
 		char[] urlAsChars = url.toCharArray();
 		
@@ -57,7 +66,7 @@ public class RelativeUrlResolver {
 	}
 	
 	//Takes full URL and returns it by deleting file-name plus current directory
-	//Example http://www.notMaliciousAtAll.com/page/anotherpage/fooling.html it should return http://www.notMaliciousAtAll.com/page/
+	//Example http://www.notMaliciousAtAll.com/page/anotherpage/fooling.html it should return http://www.notMaliciousAtAll.com/page
 	private static String previousDirectory(String url) {
 		int lengthOfUrl = url.length(), i, lastSlash = 0, beforeLastSlash = 0;
 		char[] urlAsChars = url.toCharArray();

@@ -8,16 +8,16 @@ import crawlers.util.MakeRequest;
 public class RobotTXT {
 	
 	
-	private static final String ROBOT_TXT_PATH = "/robots.txt";
+	private static final String ROBOTS_TXT_PATH = "/robots.txt";
 	
 	//TODO: override apache's DNS resolver
 	
 	private  static String getRobotsTxt(String domainName){
 		String robotstxt = null;
 		//Sends head request to check if it's exist
-		if(MakeRequest.isFound(domainName, ROBOT_TXT_PATH)) {
+		if(MakeRequest.isFound(domainName, ROBOTS_TXT_PATH)) {
 			//Send get request to get the content body
-			robotstxt = MakeRequest.getContentOf(domainName, ROBOT_TXT_PATH);
+			robotstxt = MakeRequest.getContentOf(domainName, ROBOTS_TXT_PATH);
 		}
 		return robotstxt;
 	}

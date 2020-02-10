@@ -8,7 +8,7 @@ import crawlers.url.UrlLexer;
 //This should take the document from the master and operate on it using modules
 public class Chain {
 	
-	public void process(String document, String urlOfDocuemnt) {
+	public void process(String urlOfDocuemnt, String document) {
 		
 		//Parsing the 
 		List<String> urls = UrlLexer.extractURLs(document);

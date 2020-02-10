@@ -1,5 +1,6 @@
 package crawlers.crawlers;
 
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -7,15 +8,21 @@ import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
+import crawlers.modules.exclusion.RobotTXT;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Master {
 
 	
-	public static void main(String args[]) {
+	public static void main(String args[]) throws UnknownHostException {
+		/*
 		logger.trace("DISPATCHER IS UP AND RUNNING");
-		new Master().init();	
+		new Master().init();*/
+		
+		RobotTXT.getRobotsTxt("google.com");
+		
 	}
 	
     private static final Logger logger = LoggerFactory.getLogger(Master.class);

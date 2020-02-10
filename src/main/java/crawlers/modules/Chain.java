@@ -2,6 +2,7 @@ package crawlers.modules;
 
 import java.util.List;
 
+import crawlers.modules.exclusion.RobotTXT;
 import crawlers.modules.filter.Filter;
 import crawlers.url.UrlLexer;
 
@@ -23,7 +24,7 @@ public class Chain {
 		Filter.drop(urls);
 		
 		//TODO: call exclusion filter here
-		
+		RobotTXT.filter(urlOfDocuemnt, urls);
 	}
 
 }

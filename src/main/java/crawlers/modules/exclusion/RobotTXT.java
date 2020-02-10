@@ -1,6 +1,8 @@
 package crawlers.modules.exclusion;
 
 import java.util.List;
+import java.util.regex.Pattern;
+
 import crawlers.util.MakeRequest;
 
 public class RobotTXT {
@@ -10,18 +12,29 @@ public class RobotTXT {
 	
 	//TODO: override apache's DNS resolver
 	
-	public static String getRobotsTxt(String domainName){
-		String content = null;
+	private  static String getRobotsTxt(String domainName){
+		String robotstxt = null;
 		//Sends head request to check if it's exist
 		if(MakeRequest.isFound(domainName, ROBOT_TXT_PATH)) {
 			//Send get request to get the content body
-			content = MakeRequest.getContentOf(domainName, ROBOT_TXT_PATH);
+			robotstxt = MakeRequest.getContentOf(domainName, ROBOT_TXT_PATH);
 		}
-		return content;
+		return robotstxt;
 	}
 	
-	public static List<String> extractDisallowedPaths(String content){
-		List<String> paths = ExclusionLexer.extract(content);
-		return paths;
+	private static String extractDisallowedPaths(String robotstxt){return ExclusionLexer.extract(robotstxt);}
+	
+	private static Pattern getPatternOFContent(String robotstxt) {
+		return Pattern.compile(extractDisallowedPaths(robotstxt));
+	}
+	
+	public static void filter(String domainName, List<String> urls) {
+		int lengthOfUrls = urls.size(), i;
+		String tempUrl;
+			
+		for(i = 0; i < lengthOfUrls; i++) {
+			tempUrl = urls.remove(0);
+
+		}
 	}
 }

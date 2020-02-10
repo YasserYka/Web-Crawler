@@ -17,12 +17,8 @@ public class Master {
 
 	
 	public static void main(String args[]) throws UnknownHostException {
-		/*
 		logger.trace("DISPATCHER IS UP AND RUNNING");
-		new Master().init();*/
-		
-		RobotTXT.getRobotsTxt("google.com");
-		
+		new Master().init();
 	}
 	
     private static final Logger logger = LoggerFactory.getLogger(Master.class);

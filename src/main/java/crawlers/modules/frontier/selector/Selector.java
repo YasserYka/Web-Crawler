@@ -4,10 +4,10 @@ import java.util.PriorityQueue;
 
 public class Selector {
 
-	//Act as min-heap 
-	PriorityQueue<Element> heap;
+	//Act as min-heap for selecting URL from back end
+	private static PriorityQueue<Element> HEAP = new PriorityQueue<Element>(new CustomComparator());
 	
-	public Selector() {
-		heap = new PriorityQueue<Element>(new CustomComparator());
+	public String Select() {
+		return "url";
 	}
 }

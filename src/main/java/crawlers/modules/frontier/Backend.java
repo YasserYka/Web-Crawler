@@ -10,7 +10,7 @@ public class Backend {
 	
 	//Queue for each domain name
 	private HashMap<String, Queue<String>> queues;
-	//TODO: Limit number of queue or limit-less?
+	//For testing purposes
 	private int maxNumberOfQueues = Integer.MAX_VALUE;
 	//Counter for number of queues
 	private int numberOfQueues;

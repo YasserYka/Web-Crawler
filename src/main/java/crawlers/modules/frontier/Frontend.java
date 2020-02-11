@@ -5,10 +5,11 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class Frontend {
+	//Implement prioritizer 
 	
 	//Each queue well be assigned a value indicates it priority (0 is the highest priority)
 	private HashMap<Integer, Queue<String>> queues;
-	//Number of Queues
+	//Max number of Queues
 	private final int maxNumberOfQueues = 10;
 	//Counter for number of queues
 	private int numberOfQueues;

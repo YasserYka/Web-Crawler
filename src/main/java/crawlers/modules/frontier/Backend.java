@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import crawlers.models.URL;
+import crawlers.modules.frontier.selector.Selector;
 
 public class Backend {
 	
@@ -29,8 +30,10 @@ public class Backend {
 	public void addUrl(URL url) {
 		if(queues.containsKey(url.getDomainName()))
 			queues.get(url.getDomainName()).add(url.getUrl());
-		else if(numberOfQueues <= maxNumberOfQueues)
+		else if(numberOfQueues <= maxNumberOfQueues) {
+			Selector.add(url.getDomainName());
 			queues.put(url.getDomainName(), initializeNewQueue());
+		}
 		else
 			try {throw new ExceedNumberOfQueues();}catch(ExceedNumberOfQueues e) {/* TODO:Log it*/e.printStackTrace();}
 	}

@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class Frontend {
-	//Implement prioritizer 
 	
 	//Each queue well be assigned a value indicates it priority (0 is the highest priority)
 	private HashMap<Integer, Queue<String>> queues;

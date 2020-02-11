@@ -10,6 +10,7 @@ import org.zeromq.ZMQ;
 
 import crawlers.modules.Seen;
 import crawlers.modules.exclusion.RobotTXT;
+import crawlers.modules.frontier.selector.Selector;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,10 @@ public class Master {
 	}
 	
     private static final Logger logger = LoggerFactory.getLogger(Master.class);
+	//Event to handle event in getUrlFromFrontier
+	private final static String EMPTY_EVENT = "EMPTY";
+	//Event to handle event in getUrlFromFrontier
+	private final static String WAIT_EVENT = "WAIT";
 	//Holds addresses of slaves whom ready for work
 	private Queue<String> queueOfSlaves;
 	//Router socket for Dealer-Router pattern
@@ -144,9 +149,17 @@ public class Master {
 		}
 	}
 	
-	//TODO: contact frontier for URL
+	//Call Selector class to fetch URL from frontier
 	public String getUrlFromFrontier() {
-		return "";
+		String response = Selector.Select();
+		
+		//TODO: Deal with it two first conditions
+		if(response == EMPTY_EVENT)
+			return null;
+		else if(response == WAIT_EVENT)
+			return null;
+		else
+			return response;
 	}
 
 }

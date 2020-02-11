@@ -28,7 +28,7 @@ public class Slave {
 
 	public static void main(String args[]) {
 		logger.trace("THE CRAWLER IS UP AND RUNNING");
-		new Slave().init();	
+		new Slave().init();
 	}
 	
     private static final Logger logger = LoggerFactory.getLogger(Slave.class);
@@ -226,5 +226,7 @@ public class Slave {
         
         return content;
 	}
+	
+	//TODO: Call resolver in some way
 	
 }

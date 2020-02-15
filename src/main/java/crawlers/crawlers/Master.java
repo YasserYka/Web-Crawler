@@ -21,9 +21,7 @@ public class Master {
 
 	
 	public static void main(String args[]) throws UnknownHostException {
-		System.out.println("Running");
-		//PropertyConfigurator.configure("resources/log4j.properties");
-		logger.info("DISPATCHER IS UP AND RUNNING");
+		logger.info("MASTER IS UP AND RUNNING");
 		new Master().init();
 	}
 	
@@ -68,7 +66,7 @@ public class Master {
 	}
 	
 	public String getReadySlaveAddress(){
-		logger.trace("SLAVE DEQUEUED FROM THE QUEUE");
+		logger.info("SLAVE DEQUEUED FROM THE QUEUE");
 		return queueOfSlaves.remove();
 	}
 	
@@ -79,7 +77,7 @@ public class Master {
 		//TODO: but the body to be sent in queue then send it index to slave
 		//Send body of message
 		ROUTER.send("BODY");
-		logger.trace("WORK SENT TO SLAVE {}", address);
+		logger.info("WORK SENT TO SLAVE {}", address);
 	}
 	
 	//If url exit fetch it 
@@ -123,7 +121,7 @@ public class Master {
 	//Takes the event frame and take action upon it
 	public void handleMessage(String address, String event, String body) {
 		
-		logger.trace("R: MESSAGE RECEIVED FROM SLAVE {}", address);
+		logger.info("R: MESSAGE RECEIVED FROM SLAVE {}", address);
 		
 		if(event.equals(readyforWork))
 			insertSlave(address);
@@ -138,7 +136,7 @@ public class Master {
 	
 	//Creates a new slave object for an address and enqueue it
 	public void insertSlave(String address){
-		logger.trace("SLAVE REGISTERED IN QUEUE WITH ADDRESS", address);
+		logger.info("SLAVE REGISTERED IN QUEUE WITH ADDRESS", address);
 		queueOfSlaves.add(address);
 	}
 	
@@ -148,7 +146,7 @@ public class Master {
 		//It's time to send heart beat to all subscriber
 		if(System.currentTimeMillis() > nextHeartbeat) {
 			PUB.send(heartbeat);
-			logger.trace("S: HEARTBEAT TO SLAVE");
+			logger.info("S: HEARTBEAT TO SLAVE");
 			nextHeartbeat = System.currentTimeMillis() + heartbeatInterval;
 		}
 	}

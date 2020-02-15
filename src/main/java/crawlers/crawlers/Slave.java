@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 public class Slave {
 
 	public static void main(String args[]) {
-		logger.trace("THE CRAWLER IS UP AND RUNNING");
+		logger.info("THE CRAWLER IS UP AND RUNNING");
 		BasicConfigurator.configure();
 		new Slave().init();
 	}
@@ -76,6 +76,8 @@ public class Slave {
 	private int counter;
 	//Apache's http client instance
     private  CloseableHttpClient httpClient;
+    //default URL of Redis
+    private String redisUrl = "redis://127.0.0.1:6379";
 
 	protected Slave() {
         busy = false;
@@ -93,7 +95,7 @@ public class Slave {
 		    //Set identity for master
 		    address = String.format("%04X-%04X", random.nextInt(), random.nextInt());
 		    DLR.setIdentity(address.getBytes(ZMQ.CHARSET));
-		    logger.trace("ADDRESS CREATED %s", address);
+		    logger.info("ADDRESS CREATED %s", address);
 		    
 		    //Sub subscribe to all kind of message of master (disable filtering)
 		    SUB.subscribe(ZMQ.SUBSCRIPTION_ALL);
@@ -114,7 +116,7 @@ public class Slave {
 		    	if(poller.pollin(0)) {
 		    		String event = DLR.recvStr();
 		    		String body = DLR.recvStr();
-		    		
+
 		    	}
 		        
 		    	//Heart beat from master
@@ -147,7 +149,7 @@ public class Slave {
 		DLR.sendMore(finishedWork);
 		DLR.sendMore(key);
 		DLR.send("");
-		logger.trace("FINISHED WORK SENT");
+		logger.info("FINISHED WORK SENT");
 	}
 	
 	//when received message not like what we expected
@@ -163,7 +165,7 @@ public class Slave {
 
 	//When master dosen't send a heart beat for long time kill this whole thread
 	public void selfDestruction(ZContext context){
-		logger.trace("OPERATING SELF DESTRUCTION");
+		logger.info("OPERATING SELF DESTRUCTION");
 		context.destroySocket(DLR);
 		context.destroySocket(SUB);
 		System.exit(0);
@@ -177,12 +179,12 @@ public class Slave {
 	public void sendRequestForWork() {
 		DLR.sendMore(readyforWork);
 		DLR.send("");
-		logger.trace("REQUEST FOR WORK SENT");
+		logger.info("REQUEST FOR WORK SENT");
 	}
 	
 	public Config cacheConfiguration() {
 		Config config = new Config();
-		config.useSingleServer().setAddress("127.0.0.1:6379");
+		config.useSingleServer().setAddress(redisUrl);
 		return config;
 	}
 	
@@ -198,7 +200,7 @@ public class Slave {
 		
         try (CloseableHttpResponse response = httpClient.execute(request)) {
         	
-        	logger.trace("HTTP REQUEST HAS BEEN SENT TO {}", uri.toURL());
+        	logger.info("HTTP REQUEST HAS BEEN SENT TO {}", uri.toURL());
         	
         	response.getAllHeaders().toString();
         	

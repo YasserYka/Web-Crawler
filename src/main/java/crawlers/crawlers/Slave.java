@@ -2,21 +2,26 @@ package crawlers.crawlers;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Random;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
+import crawlers.modules.DNSResolution;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-
+import org.apache.log4j.BasicConfigurator;
 import org.redisson.Redisson;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
@@ -28,6 +33,7 @@ public class Slave {
 
 	public static void main(String args[]) {
 		logger.trace("THE CRAWLER IS UP AND RUNNING");
+		BasicConfigurator.configure();
 		new Slave().init();
 	}
 	
@@ -108,6 +114,7 @@ public class Slave {
 		    	if(poller.pollin(0)) {
 		    		String event = DLR.recvStr();
 		    		String body = DLR.recvStr();
+		    		
 		    	}
 		        
 		    	//Heart beat from master
@@ -125,24 +132,6 @@ public class Slave {
 		    			selfDestruction(context);
 		      }
 		}
-	}
-	
-	//Gets URL and start crawling
-	public void crawle(String url) {
-		
-		//TODO: how to contact the DNS resolver RMI maybe?
-		InetAddress address = null; //Represent address from DNS resolver
-		//make get request
-		String document = makeRequest(address);
-		
-		String key = generateKey();
-		
-		busy = true;
-		
-		addToCache(key, document);
-		
-		handleFinishedWork(key);
-		
 	}
 	
 	public String generateKey() {
@@ -198,9 +187,9 @@ public class Slave {
 	}
 	
 	//Gets host-name's as IntetAddress format then makes get request and returns it's body as String
-	public String makeRequest(InetAddress address) {
+	public String makeRequest(URI uri) {
 		//getHostAddress convert InetAddress to string presentation
-		HttpGet request = new HttpGet(address.getHostAddress());
+		HttpGet request = new HttpGet(uri);
 		httpClient = HttpClients.createDefault();
         HttpEntity entity = null;
 		String content = "";
@@ -209,11 +198,11 @@ public class Slave {
 		
         try (CloseableHttpResponse response = httpClient.execute(request)) {
         	
-        	logger.trace("HTTP REQUEST HAS BEEN SENT TO {}", address.getHostAddress());
+        	logger.trace("HTTP REQUEST HAS BEEN SENT TO {}", uri.toURL());
         	
         	response.getAllHeaders().toString();
         	
-        	if(response.getStatusLine().getStatusCode() != 200) {
+        	if(response.getStatusLine().getStatusCode() == 200){
         		entity = response.getEntity();
         		content = response.getAllHeaders().toString();
         	}
@@ -228,5 +217,14 @@ public class Slave {
 	}
 	
 	//TODO: Call resolver in some way
-	
+	//TODO: for now ill call it via fs
+	public void crawl(String domainName) throws URISyntaxException {
+		busy = true;
+		String address = DNSResolution.resolveHostnameToIP(domainName).getHostAddress();
+		URI uri = new URIBuilder().setScheme("http").setHost(address).build();
+		String conent = makeRequest(uri);
+		String key = generateKey();
+		addToCache(key, conent);
+		handleFinishedWork(key);
+	}	
 }

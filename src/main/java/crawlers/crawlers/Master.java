@@ -12,6 +12,8 @@ import crawlers.modules.Seen;
 import crawlers.modules.exclusion.RobotTXT;
 import crawlers.modules.frontier.selector.Selector;
 
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +21,9 @@ public class Master {
 
 	
 	public static void main(String args[]) throws UnknownHostException {
-		logger.trace("DISPATCHER IS UP AND RUNNING");
+		System.out.println("Running");
+		//PropertyConfigurator.configure("resources/log4j.properties");
+		logger.info("DISPATCHER IS UP AND RUNNING");
 		new Master().init();
 	}
 	
@@ -85,7 +89,7 @@ public class Master {
 	
 	public void init() {
 		try (ZContext context = new ZContext()) {
-			
+			  System.out.println("init");
 		      ROUTER = context.createSocket(SocketType.ROUTER);
 		      PUB = context.createSocket(SocketType.PUB);
 		      poller = context.createPoller(2);

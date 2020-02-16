@@ -33,7 +33,6 @@ public class Slave {
 
 	public static void main(String args[]) {
 		logger.info("THE CRAWLER IS UP AND RUNNING");
-		BasicConfigurator.configure();
 		new Slave().init();
 	}
 	
@@ -49,23 +48,23 @@ public class Slave {
 	//This set to true if work not done yet
 	private boolean busy;
 	//Master will send heart beats every 5mscs
-	private final int heartbeatInterval = 5000;
+	private final static int HEARTBEAT_INTERVAL = 5000;
 	//Liveness of the master (when we don't receive heart beat form master 10 times (10 heart beat intervals) means the master is down)
-	private final int livenessOfMaster = 10;
+	private final static int livenessOfMaster = 10;
 	//event heart-beat
-	private final String heartbeat = "001";
+	private final static String HEARTBEAT = "001";
 	//event ready-for-work;
-	private final String readyforWork = "002";
+	private final static String READY_FOR_WORK = "002";
 	//event task is done
-	private final String finishedWork = "003";
+	private final static String WORK_FINISHED = "003";
 	//event task to be done
-	private final String workToBeDone = "004";
+	private final static String WORK_TO_BE_DONE = "004";
 	//Counter for liveness of master
     private int liveness;
 	//Address to bind-to for Dealer-Router locally
-	private final String dealerAddress = "tcp://127.0.0.1:5555";
+	private final String DEALER_ADDRESS = "tcp://127.0.0.1:5555";
 	//Address to bind-to for Subscriber-Publisher locally
-	private final String subscriberAddress = "tcp://localhost:5556";
+	private final String SUBSCRIBER_ADDRESS = "tcp://localhost:5556";
 	//Used to generate unique identity
 	private Random random;
 	//Instance of Redis
@@ -77,7 +76,7 @@ public class Slave {
 	//Apache's http client instance
     private  CloseableHttpClient httpClient;
     //default URL of Redis
-    private String redisUrl = "redis://127.0.0.1:6379";
+    private final static String REDIS_ADDRESS = "redis://127.0.0.1:6379";
 
 	protected Slave() {
         busy = false;
@@ -100,8 +99,8 @@ public class Slave {
 		    //Sub subscribe to all kind of message of master (disable filtering)
 		    SUB.subscribe(ZMQ.SUBSCRIPTION_ALL);
 		    
-		    DLR.connect(dealerAddress);
-		    SUB.connect(subscriberAddress);
+		    DLR.connect(DEALER_ADDRESS);
+		    SUB.connect(SUBSCRIBER_ADDRESS);
 		    
 		    poller.register(DLR, ZMQ.Poller.POLLIN);
 		    poller.register(SUB, ZMQ.Poller.POLLIN); 
@@ -110,13 +109,16 @@ public class Slave {
 
 		    while (true) {
 		    	//check for message in this interval
-		    	poller.poll(heartbeatInterval);
+		    	poller.poll(HEARTBEAT_INTERVAL);
 		    	
 		    	//Received message from master via dealer
 		    	if(poller.pollin(0)) {
 		    		String event = DLR.recvStr();
 		    		String body = DLR.recvStr();
-
+		    		if(event.equals(WORK_TO_BE_DONE)) {
+			    		logger.info("WORK RECIVED FORM MASTER WITH BODY {}", body);
+		    			crawl(body);
+		    		}
 		    	}
 		        
 		    	//Heart beat from master
@@ -124,7 +126,7 @@ public class Slave {
 		    		String messageReceived = SUB.recvStr();
 
 		    		//If message from master is a heart beat handle it other wise 
-		    		if(messageReceived.equals(heartbeat))
+		    		if(messageReceived.equals(HEARTBEAT))
 		    			handleHeartbeat();
 		    		else
 		    			handleWrongMessage(messageReceived);
@@ -146,7 +148,7 @@ public class Slave {
 	
 	//Takes key of where the document was stored in cache
 	public void handleFinishedWork(String key) {
-		DLR.sendMore(finishedWork);
+		DLR.sendMore(WORK_FINISHED);
 		DLR.sendMore(key);
 		DLR.send("");
 		logger.info("FINISHED WORK SENT");
@@ -157,8 +159,8 @@ public class Slave {
 	
 	//check if heart beat is correct message if true reset liveness if no call handleWrongMessage
 	public void handleHeartbeat(){
-		System.out.println("R: HEARTBEAT RECIVED");
-		liveness = heartbeatInterval;
+		logger.info("HEARTBEAT RECIVED");
+		liveness = HEARTBEAT_INTERVAL;
     	if(!busy)
     		sendRequestForWork();
 	}
@@ -177,14 +179,14 @@ public class Slave {
 	}
 	
 	public void sendRequestForWork() {
-		DLR.sendMore(readyforWork);
+		DLR.sendMore(READY_FOR_WORK);
 		DLR.send("");
 		logger.info("REQUEST FOR WORK SENT");
 	}
 	
 	public Config cacheConfiguration() {
 		Config config = new Config();
-		config.useSingleServer().setAddress(redisUrl);
+		config.useSingleServer().setAddress(REDIS_ADDRESS);
 		return config;
 	}
 	
@@ -220,13 +222,19 @@ public class Slave {
 	
 	//TODO: Call resolver in some way
 	//TODO: for now ill call it via fs
-	public void crawl(String domainName) throws URISyntaxException {
-		busy = true;
+	public void crawl(String domainName){
+		logger.info("REQUEST SENT TO DOMAINNAME {}", domainName);
+		busy = true; 
 		String address = DNSResolution.resolveHostnameToIP(domainName).getHostAddress();
-		URI uri = new URIBuilder().setScheme("http").setHost(address).build();
-		String conent = makeRequest(uri);
+		URI uri = buildUri(address);
+		String conent = "<HTML></HTML>";/*(uri);*/
 		String key = generateKey();
 		addToCache(key, conent);
 		handleFinishedWork(key);
 	}	
+	
+	public URI buildUri(String address) {
+		try {return new URIBuilder().setScheme("http").setHost(address).build();} catch (URISyntaxException e) {logger.debug(e.toString());}
+		return null;
+	}
 }

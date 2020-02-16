@@ -35,25 +35,25 @@ public class Master {
 	//Router socket for Dealer-Router pattern
 	private ZMQ.Socket ROUTER;
 	//Publisher socket for Subscriber-Publisher pattern used to send heart beat to master
-	private ZMQ.Socket PUB;
+	private ZMQ.Socket PUBLISHER;
 	//to read from multiple sockets
 	private ZMQ.Poller poller;
 	//Time to wait before sending next heart beat
-	private final int heartbeatInterval = 5000;
+	private final static int HEARTBEAT_INTERVAL = 5000;
 	//Time to send heart beat in msec
 	private long nextHeartbeat;
 	//event heart-beat
-	private final String heartbeat = "001";
+	private final  static String HEARTBEAT = "001";
 	//event ready-for-work;
-	private final String readyforWork = "002";
+	private final static String READY_FOR_WORK = "002";
 	//event task is done
-	private final String finishedWork = "003";
+	private final static String WORK_FINISHED = "003";
 	//event task to be done
-	private final String workToBeDone = "004";
+	private final static String WORK_TO_BE_DONE = "004";
 	//Address to bind-to for Dealer-Router locally
-	private final String routerAddress = "tcp://127.0.0.1:5555";
+	private final static String ROUTER_ADDRESS = "tcp://127.0.0.1:5555";
 	//Address to bind-to for Subscriber-Publisher locally
-	private final String publisherAddress = "tcp://*:5556";
+	private final static String PUBLISHER_ADDRESS = "tcp://*:5556";
 	
 	public Master() {queueOfSlaves = new LinkedList<String>();}
 
@@ -73,10 +73,10 @@ public class Master {
 	public void sendWorkToThisAddress(String address){
 		ROUTER.sendMore(address);
 		//Send event work-to-be-done
-		ROUTER.sendMore("EVENT");
+		ROUTER.sendMore(WORK_TO_BE_DONE);
 		//TODO: but the body to be sent in queue then send it index to slave
 		//Send body of message
-		ROUTER.send("BODY");
+		ROUTER.send("www.google.com");
 		logger.info("WORK SENT TO SLAVE {}", address);
 	}
 	
@@ -87,22 +87,22 @@ public class Master {
 	
 	public void init() {
 		try (ZContext context = new ZContext()) {
-			  System.out.println("init");
-		      ROUTER = context.createSocket(SocketType.ROUTER);
-		      PUB = context.createSocket(SocketType.PUB);
+
+			  ROUTER = context.createSocket(SocketType.ROUTER);
+		      PUBLISHER = context.createSocket(SocketType.PUB);
 		      poller = context.createPoller(2);
 		      
-		      PUB.bind(publisherAddress);
-		      ROUTER.bind(routerAddress);
+		      PUBLISHER.bind(PUBLISHER_ADDRESS);
+		      ROUTER.bind(ROUTER_ADDRESS);
 		      
 		      //Register two sockets in poller so to listen on both sockets
 		      poller.register(ROUTER, ZMQ.Poller.POLLIN);
-		      poller.register(PUB, ZMQ.Poller.POLLIN);
-		      nextHeartbeat = System.currentTimeMillis() + heartbeatInterval;
+		      poller.register(PUBLISHER, ZMQ.Poller.POLLIN);
+		      nextHeartbeat = System.currentTimeMillis() + HEARTBEAT_INTERVAL;
 		      
 		      while (true) {
 		    	  
-		    	poller.poll(heartbeatInterval);
+		    	poller.poll(HEARTBEAT_INTERVAL);
 		    	//if it's time to send heart beat send it
 		    	sendHearbeat();
 		    	
@@ -121,11 +121,11 @@ public class Master {
 	//Takes the event frame and take action upon it
 	public void handleMessage(String address, String event, String body) {
 		
-		logger.info("R: MESSAGE RECEIVED FROM SLAVE {}", address);
+		logger.info("MESSAGE RECEIVED FROM SLAVE {}", address);
 		
-		if(event.equals(readyforWork))
+		if(event.equals(READY_FOR_WORK))
 			insertSlave(address);
-		else if(event.equals(finishedWork))
+		else if(event.equals(WORK_FINISHED))
 			handleFinishedWork(body);
 	}
 	
@@ -136,7 +136,7 @@ public class Master {
 	
 	//Creates a new slave object for an address and enqueue it
 	public void insertSlave(String address){
-		logger.info("SLAVE REGISTERED IN QUEUE WITH ADDRESS", address);
+		logger.info("SLAVE REGISTERED IN QUEUE WITH ADDRESS {}", address);
 		queueOfSlaves.add(address);
 	}
 	
@@ -145,9 +145,9 @@ public class Master {
 	public void sendHearbeat() {
 		//It's time to send heart beat to all subscriber
 		if(System.currentTimeMillis() > nextHeartbeat) {
-			PUB.send(heartbeat);
-			logger.info("S: HEARTBEAT TO SLAVE");
-			nextHeartbeat = System.currentTimeMillis() + heartbeatInterval;
+			PUBLISHER.send(HEARTBEAT);
+			logger.info("HEARTBEAT SENT TO SLAVES");
+			nextHeartbeat = System.currentTimeMillis() + HEARTBEAT_INTERVAL;
 		}
 	}
 	

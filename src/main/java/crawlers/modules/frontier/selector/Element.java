@@ -5,8 +5,8 @@ import java.util.Date;
 
 public class Element {
 
-	Calendar stamp;
-	String domainName;
+	private Calendar stamp;
+	private String domainName;
 	
 	public Element(String domainName, int seconds) {
 		this.domainName = domainName;

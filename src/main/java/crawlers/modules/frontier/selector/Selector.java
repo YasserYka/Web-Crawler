@@ -4,6 +4,7 @@ import java.util.Calendar;
 import java.util.PriorityQueue;
 
 import crawlers.configuration.all;
+import crawlers.modules.frontier.Backend;
 
 public class Selector {
 	
@@ -17,15 +18,23 @@ public class Selector {
 	private static PriorityQueue<Element> HEAP = new PriorityQueue<Element>(new CustomComparator());
 	
 	//Select first element in Heap if it time pass the current time
-	public static String Select() {
-		Element element = HEAP.peek();
+	private static Element helperSelect() { 
 		
 		if(HEAP.size() == 0)
-			return EMPTY_EVENT;
-		else if(element.getStamp().after(Calendar.getInstance()))
-			return HEAP.remove().getDomainName();
-		else
-		return WAIT_EVENT;
+			return null;
+		
+		Element element = HEAP.peek();
+
+		if(element.getStamp().after(Calendar.getInstance()))
+			return HEAP.remove();
+
+		return null;
+	}
+	
+	public static String select() {
+		if(helperSelect() != null)
+			return Backend.get(helperSelect().getDomainName());
+		return null;
 	}
 	
 	public static void add(String url) {

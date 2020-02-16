@@ -10,16 +10,11 @@ import crawlers.modules.frontier.selector.Selector;
 public class Backend {
 	
 	//Queue for each domain name
-	private HashMap<String, Queue<String>> queues;
-	//For testing purposes
-	private int maxNumberOfQueues = Integer.MAX_VALUE;
+	private static HashMap<String, Queue<String>> queues = new HashMap<String, Queue<String>>();
+	//For testing purposes it will be set to 10
+	private static int maxNumberOfQueues = 10;
 	//Counter for number of queues
-	private int numberOfQueues;
-	
-	public Backend() {
-		queues = new HashMap<String, Queue<String>>();
-		numberOfQueues = 0;
-	}
+	private static int numberOfQueues = 0;
 	
 	//if one queue become empty don't remove that queue but keep ask for unique domain name to fill it
 	public void refillEmptyQueue() {
@@ -38,7 +33,9 @@ public class Backend {
 			try {throw new ExceedNumberOfQueues();}catch(ExceedNumberOfQueues e) {/* TODO:Log it*/e.printStackTrace();}
 	}
 	
-	public LinkedList<String> initializeNewQueue() {return new LinkedList<String>();}
+	public static LinkedList<String> initializeNewQueue() {return new LinkedList<String>();}
 
-	
+	public static String get(String key) {
+		return queues.get(key).remove();
+	}
 }

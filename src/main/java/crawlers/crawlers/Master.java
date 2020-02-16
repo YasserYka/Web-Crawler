@@ -11,6 +11,7 @@ import org.zeromq.ZMQ;
 import crawlers.modules.Seen;
 import crawlers.modules.exclusion.RobotTXT;
 import crawlers.modules.frontier.selector.Selector;
+import crawlers.util.Cache;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
@@ -54,6 +55,7 @@ public class Master {
 	private final static String ROUTER_ADDRESS = "tcp://127.0.0.1:5555";
 	//Address to bind-to for Subscriber-Publisher locally
 	private final static String PUBLISHER_ADDRESS = "tcp://*:5556";
+
 	
 	public Master() {queueOfSlaves = new LinkedList<String>();}
 
@@ -131,7 +133,7 @@ public class Master {
 	
 	//When slave sends back response that means an crawled 
 	public void handleFinishedWork(String body) {
-		
+		logger.info("SLAVE FINISHED HIS WORK AND RETURNED THIS DOCUMENT {}", body);
 	}
 	
 	//Creates a new slave object for an address and enqueue it

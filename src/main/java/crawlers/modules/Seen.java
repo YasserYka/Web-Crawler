@@ -53,7 +53,7 @@ public class Seen {
 				//Add it to bloom-filter
 				add(url);
 				//Add it back to the list
-				urls.add(lengthOfUrls - 1, url);
+				urls.add(url);
 			}
 		}
 	}

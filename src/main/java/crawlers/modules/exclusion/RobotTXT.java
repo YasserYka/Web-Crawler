@@ -43,7 +43,7 @@ public class RobotTXT {
 				
 				//If URL not matched one of the excluded URI return it
 				if(!pattern.matcher(tempUrl).matches())
-					urls.add(lengthOfUrls - 1, tempUrl);
+					urls.add(tempUrl);
 			}
 		}
 	}

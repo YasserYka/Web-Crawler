@@ -41,6 +41,7 @@ public class RelativeUrlResolver {
 		}
 		else if(relative.startsWith("#")) {/*TODO: Idk how I'm gonna handle this yet*/}
 		else {
+			System.out.println("****"+relative);
 			resolved = currentDirectory(base) + '/' +relative;
 		}
 		return resolved;
@@ -56,6 +57,10 @@ public class RelativeUrlResolver {
 	//Takes full URL and returns it without file-name in path
 	//Example http://www.notMaliciousAtAll.com/page/fooling.html it should return http://www.notMaliciousAtAll.com/page
 	private static String currentDirectory(String url) {
+		
+		if(!url.contains("/"))
+			return url;
+		
 		int lengthOfUrl = url.length(), i, lastSlash = 0;
 		char[] urlAsChars = url.toCharArray();
 		
@@ -89,9 +94,9 @@ public class RelativeUrlResolver {
 		for(i = 0; i < lengthOfUrls; i++) {
 			tempUrl = urls.remove(0);
 			if(isAbsolute(tempUrl))
-				urls.add(lengthOfUrls - 1, tempUrl);
+				urls.add(tempUrl);
 			else
-				urls.add(lengthOfUrls - 1, resolve(url, tempUrl));
+				urls.add(resolve(url, tempUrl));
 				
 		}
 	}

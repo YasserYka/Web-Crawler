@@ -9,19 +9,21 @@ import crawlers.url.UrlLexer;
 //This should take the document from the master and operate on it using modules
 public class Chain {
 	
-	public void process(String urlOfDocuemnt, String document) {
+	public static void process(String url, String document) {
+		
+		System.out.println("in chain" + url+ " " + document);
 		
 		//Parsing the 
 		List<String> urls = UrlLexer.extractURLs(document);
-		
-		//TODO: call relative resolver here
-		RelativeUrlResolver.normalize(urlOfDocuemnt, urls);
+				
+		//Resolve relative URLs to absolute ones
+		RelativeUrlResolver.normalize(url, urls);		
 		
 		//Drop URLs that are out of scope
 		Filter.drop(urls);
-		
+				
 		//Fetch robots.txt file from URL and drop excluded URLs
-		RobotTXT.filter(urlOfDocuemnt, urls);
+		RobotTXT.filter(url, urls);
 		
 		//Drop seen URLs
 		Seen.filter(urls);

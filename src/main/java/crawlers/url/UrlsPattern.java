@@ -3,7 +3,7 @@ package crawlers.url;
 import java.util.regex.Pattern;
 
 public enum UrlsPattern{
-		Title("<title>(.*?)</title>"),
+
 		Src("src=[\"|'](.*?)[\"|']"),
 		Href("href=[\"|'](.*?)[\"|']");
 	

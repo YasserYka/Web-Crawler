@@ -8,6 +8,7 @@ import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
+import crawlers.modules.Chain;
 import crawlers.modules.Seen;
 import crawlers.modules.exclusion.RobotTXT;
 import crawlers.modules.frontier.selector.Selector;
@@ -132,8 +133,9 @@ public class Master {
 	}
 	
 	//When slave sends back response that means an crawled 
-	public void handleFinishedWork(String body) {
-		logger.info("SLAVE FINISHED HIS WORK AND RETURNED THIS DOCUMENT {}", body);
+	public void handleFinishedWork(String key) {
+		logger.info("SLAVE FINISHED HIS WORK AND RETURNED THIS DOCUMENT {}", key);
+		Chain.process(key, Cache.get(key));
 	}
 	
 	//Creates a new slave object for an address and enqueue it

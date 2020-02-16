@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 public class Filter {
 
 	//Pattern for detecting HTML files
-	private static final Pattern HTML_PATTERN = Pattern.compile(".*.html|.*.htm|.*.shtml|.*.php|.*.cgi|.*.jsp|.*.aspx|.*.asp|.*.pl|.*.cfm|.*\\/|.*\\w$");
+	private static final Pattern HTML_PATTERN = Pattern.compile(".*.html|.*.htm|.*.shtml|.*.php|.*.cgi|.*.jsp|.*.aspx|.*.asp|.*.pl|.*.cfm|.*\\/|.*\\w");
 	
 	//Checks if the URL points to HTML or not
 	public static boolean isHtml(String url) {
@@ -17,11 +17,14 @@ public class Filter {
 	public static void drop(List<String> urls) {
 		int lengthOfUrls = urls.size(), i;
 		String url;
-		
+		System.out.println("LENGTH: " + lengthOfUrls);
 		for(i = 0; i < lengthOfUrls; i++) {
+			lengthOfUrls = urls.size();
+			System.out.println(i);
 			url = urls.remove(0);
+			System.out.println(url);
 			if(isHtml(url))
-				urls.add(lengthOfUrls - 1, url);
+				urls.add(url);
 		}
 	}
 }

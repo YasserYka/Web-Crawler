@@ -2,7 +2,7 @@
 This project is research-based, meaning what I've implemented so far is what I got from reading books or online papers. I don't know if what I'm doig is correct or not but what I know is that I like what I'm doing and I learned a lot from it.
 
 # Usage 
-With maven installed, run
+Redis most be running in background on port 6379 then with maven installed, run
 ```
 $ mvn exec:java@master
 ```

@@ -157,7 +157,7 @@ public class Master {
 	
 	//Call Selector class to fetch URL from frontier
 	public String getUrlFromFrontier() {
-		String response = Selector.Select();
+		String response = Selector.select();
 		
 		//TODO: Deal with it two first conditions
 		if(response == EMPTY_EVENT)

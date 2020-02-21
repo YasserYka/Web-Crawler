@@ -32,7 +32,9 @@ public class Frontend {
 	
 	//TODO: Check if queue is not empty if it's skip queue
 	//Gets URL based on Pyramid-turn
-	public static String getUrl() {return queues.get(indexOfNextQueue()).remove();}
+	public static String getUrl() {
+		return queues.get(indexOfNextQueue()).remove();
+	}
 	
 	public static boolean isTheQueueAtIndexIsEmpty(int index) {return queues.get(index).isEmpty();}
 	

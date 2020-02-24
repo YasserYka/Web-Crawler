@@ -133,7 +133,7 @@ public class Slave {
 		    		else
 		    			handleWrongMessage(messageReceived);
 		    	}else{
-					logger.info("MASTER HAVEN'T SENT HEARTBEAT YET THE LIVNESS BEFORE OPERATING SELF DESTRUCTION {}", liveness);
+					logger.info("MASTER HAVEN'T SENT HEARTBEAT YET, THE LIVNESS BEFORE OPERATING SELF DESTRUCTION {}", liveness);
 					//if liveness equal zero means master is down call selfDestruction
 		    		if(--liveness == 0)
 						selfDestruction(context);

@@ -17,12 +17,9 @@ public class Filter {
 	public static void drop(List<String> urls) {
 		int lengthOfUrls = urls.size(), i;
 		String url;
-		System.out.println("LENGTH: " + lengthOfUrls);
 		for(i = 0; i < lengthOfUrls; i++) {
 			lengthOfUrls = urls.size();
-			System.out.println(i);
 			url = urls.remove(0);
-			System.out.println(url);
 			if(isHtml(url))
 				urls.add(url);
 		}

@@ -5,7 +5,6 @@ import java.util.List;
 import org.redisson.Redisson;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
-import org.redisson.config.Config;
 
 public class Seen {
 
@@ -25,7 +24,6 @@ public class Seen {
 		
 		//The huge number on left is expected amount of insertions, on the right is expected false probability
 		BLOOM_FILTER.tryInit(55000000L, 0.03);
-		shutdown();
 	}
 	
 	public static void shutdown() {CLIENT.shutdown();}

@@ -10,9 +10,7 @@ import crawlers.url.UrlLexer;
 public class Chain {
 	
 	public static void process(String url, String document) {
-		
-		System.out.println("in chain" + url+ " " + document);
-		
+				
 		//Parsing the 
 		List<String> urls = UrlLexer.extractURLs(document);
 				
@@ -28,9 +26,9 @@ public class Chain {
 		//Drop seen URLs
 		Seen.filter(urls);
 		
-		//If some URLs survived put them in frontier
+		/*//If some URLs survived put them in frontier
 		if(urls.size() > 0)
-			addUrlsToFrontier(urls);
+			addUrlsToFrontier(urls);*/
 	}
 	
 	private static void addUrlsToFrontier(List<String> urls) {

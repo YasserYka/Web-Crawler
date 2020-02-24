@@ -96,7 +96,7 @@ public class Slave {
 		    //Set identity for master
 		    address = String.format("%04X-%04X", random.nextInt(), random.nextInt());
 		    DLR.setIdentity(address.getBytes(ZMQ.CHARSET));
-		    logger.info("ADDRESS CREATED %s", address);
+		    logger.info("ADDRESS CREATED {}", address);
 		    
 		    //Sub subscribe to all kind of message of master (disable filtering)
 		    SUB.subscribe(ZMQ.SUBSCRIPTION_ALL);
@@ -151,9 +151,9 @@ public class Slave {
 	//Takes key of where the document was stored in cache
 	public void handleFinishedWork(String key) {
 		DLR.sendMore(WORK_FINISHED);
-		DLR.sendMore(key);
-		DLR.send("");
+		DLR.send(key);
 		logger.info("FINISHED WORK SENT");
+		busy = false;
 	}
 	
 	//when received message not like what we expected
@@ -182,7 +182,7 @@ public class Slave {
 	
 	public void sendRequestForWork() {
 		DLR.sendMore(READY_FOR_WORK);
-		DLR.send("");
+		DLR.send(" ");
 		logger.info("REQUEST FOR WORK SENT");
 	}
 	

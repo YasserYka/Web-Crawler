@@ -115,21 +115,23 @@ public class Master {
 		    	//message received from slave
 		    	if(poller.pollin(0)) {
 		    		//The message received from slave should have three part first part is address second part is event type and third part is body content
-		    		handleMessage(ROUTER.recvStr(), ROUTER.recvStr(), ROUTER.recvStr());
+
+
+					handleMessage(ROUTER.recvStr(), ROUTER.recvStr(), ROUTER.recvStr());
 		    	}
 		     }
 		}
 	}
 	
 	//Takes the event frame and take action upon it
-	public void handleMessage(String address, String event, String body) {
+	public void handleMessage(String frame1, String frame2, String frame3) {
 		
-		logger.info("MESSAGE RECEIVED FROM SLAVE {}", address);
-		
-		if(event.equals(READY_FOR_WORK))
-			insertSlave(address);
-		else if(event.equals(WORK_FINISHED))
-			handleFinishedWork(body);
+		logger.info("MESSAGE RECEIVED FROM SLAVE {}", frame1);
+
+		if(frame2.equals(READY_FOR_WORK))
+			insertSlave(frame1);
+		else if(frame2.equals(WORK_FINISHED))
+			handleFinishedWork(frame3);
 	}
 	
 	//When slave sends back response that means an crawled 

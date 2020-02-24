@@ -41,7 +41,6 @@ public class RelativeUrlResolver {
 		}
 		else if(relative.startsWith("#")) {/*TODO: Idk how I'm gonna handle this yet*/}
 		else {
-			System.out.println("****"+relative);
 			resolved = currentDirectory(base) + '/' +relative;
 		}
 		return resolved;

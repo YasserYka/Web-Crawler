@@ -132,10 +132,12 @@ public class Slave {
 		    			handleHeartbeat();
 		    		else
 		    			handleWrongMessage(messageReceived);
-		    	}else
-		    		//if liveness equal zero means master is down call selfDestruction
+		    	}else{
+					logger.info("MASTER HAVEN'T SENT HEARTBEAT YET THE LIVNESS BEFORE OPERATING SELF DESTRUCTION {}", liveness);
+					//if liveness equal zero means master is down call selfDestruction
 		    		if(--liveness == 0)
-		    			selfDestruction(context);
+						selfDestruction(context);
+				}
 		      }
 		}
 	}

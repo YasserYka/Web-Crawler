@@ -13,6 +13,7 @@ import crawlers.modules.Seen;
 import crawlers.modules.exclusion.RobotTXT;
 import crawlers.modules.frontier.selector.Selector;
 import crawlers.util.Cache;
+import crawlers.util.FakeData;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
@@ -79,7 +80,7 @@ public class Master {
 		ROUTER.sendMore(WORK_TO_BE_DONE);
 		//TODO: but the body to be sent in queue then send it index to slave
 		//Send body of message
-		ROUTER.send("www.google.com");
+		ROUTER.send(FakeData.DOMAINNAME);
 		logger.info("WORK SENT TO SLAVE {}", address);
 	}
 	

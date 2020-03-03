@@ -14,7 +14,7 @@ public class Filter {
 	}
 	
 	//Takes list of URLs and drop URLs that not interested-in
-	public static void drop(List<String> urls) {
+	public static List<String> drop(List<String> urls) {
 		int lengthOfUrls = urls.size(), i;
 		String url;
 		for(i = 0; i < lengthOfUrls; i++) {
@@ -23,5 +23,6 @@ public class Filter {
 			if(isHtml(url))
 				urls.add(url);
 		}
+		return urls;
 	}
 }

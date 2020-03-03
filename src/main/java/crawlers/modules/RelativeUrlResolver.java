@@ -86,7 +86,7 @@ public class RelativeUrlResolver {
 	}
 	
 	//Iterate through URLs and turn every relative to absolute URL with 
-	public static void normalize(String url, List<String> urls) {	
+	public static List<String> normalize(String url, List<String> urls) {	
 		int lengthOfUrls = urls.size(), i;
 		String tempUrl;
 		
@@ -95,9 +95,10 @@ public class RelativeUrlResolver {
 			if(isAbsolute(tempUrl))
 				urls.add(tempUrl);
 			else
-				urls.add(resolve(url, tempUrl));
-				
+				urls.add(resolve(url, tempUrl));		
 		}
+		
+		return urls;
 	}
 
 	private static boolean isAbsolute(String url) {

@@ -38,7 +38,7 @@ public class Seen {
 	}
 	
 	//Iterate through list of URLs and drops and URLs that seen before (been in bloom-filter)
-	public static void filter(List<String> urls) {
+	public static List<String> filter(List<String> urls) {
 		if(!IS_INITIALIZED)
 			init();
 		
@@ -54,5 +54,6 @@ public class Seen {
 				urls.add(url);
 			}
 		}
+		return urls;
 	}
 }

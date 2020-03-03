@@ -28,7 +28,7 @@ public class RobotTXT {
 		return Pattern.compile(extractDisallowedPaths(robotstxt));
 	}
 	
-	public static void filter(String domainName, List<String> urls) {
+	public static List<String> filter(String domainName, List<String> urls) {
 		int lengthOfUrls = urls.size(), i;
 		String tempUrl, robotstxt = getRobotsTxt(domainName);
 				
@@ -46,5 +46,6 @@ public class RobotTXT {
 					urls.add(tempUrl);
 			}
 		}
+		return urls;
 	}
 }

@@ -1,22 +1,31 @@
 package crawlers.crawlers;
 
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
-import crawlers.modules.Chain;
+import crawlers.modules.RelativeUrlResolver;
 import crawlers.modules.Seen;
 import crawlers.modules.exclusion.RobotTXT;
+import crawlers.modules.filter.Filter;
 import crawlers.modules.frontier.selector.Selector;
+import crawlers.url.UrlLexer;
 import crawlers.util.Cache;
 import crawlers.util.FakeData;
+import io.netty.util.concurrent.CompleteFuture;
+import io.reactivex.Completable;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
+import org.redisson.api.RMap;
+import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +66,8 @@ public class Master {
 	private final static String ROUTER_ADDRESS = "tcp://127.0.0.1:5555";
 	//Address to bind-to for Subscriber-Publisher locally
 	private final static String PUBLISHER_ADDRESS = "tcp://*:5556";
+	//Redis's based distributed Map
+	private static RMap<String, String> cache = null;
 
 	
 	public Master() {queueOfSlaves = new LinkedList<String>();}
@@ -92,6 +103,8 @@ public class Master {
 	public void init() {
 		try (ZContext context = new ZContext()) {
 
+			  cache = Cache.initializeCache();
+			
 			  ROUTER = context.createSocket(SocketType.ROUTER);
 		      PUBLISHER = context.createSocket(SocketType.PUB);
 		      poller = context.createPoller(2);
@@ -109,14 +122,13 @@ public class Master {
 		    	poller.poll(HEARTBEAT_INTERVAL);
 		    	//if it's time to send heart beat send it
 		    	sendHearbeat();
-		    	
+
 		    	//If there is a URL in frontier dispatch it to available slave
 		    	dispatchWork();
 		    	
 		    	//message received from slave
 		    	if(poller.pollin(0)) {
 		    		//The message received from slave should have three part first part is address second part is event type and third part is body content
-
 
 					handleMessage(ROUTER.recvStr(), ROUTER.recvStr(), ROUTER.recvStr());
 		    	}
@@ -137,10 +149,18 @@ public class Master {
 	
 	//When slave sends back response that means an crawled 
 	public void handleFinishedWork(String key) {
-		logger.info("SLAVE FINISHED HIS WORK AND RETURNED THIS DOCUMENT {}", key);
-		Chain.process(key, Cache.get(key));
+		logger.info("SLAVE FINISHED CRAWLING THIS DOMAINNAME {}", key);
+				
+		CompletableFuture.supplyAsync(() -> cache.get(key))
+			.thenApplyAsync(doc -> UrlLexer.extractURLs(doc))
+				.thenApplyAsync(urls -> RelativeUrlResolver.normalize(key, urls))
+					.thenApplyAsync(urls -> Filter.drop(urls))
+						.thenApplyAsync(urls -> RobotTXT.filter(key, urls))
+							.thenAcceptAsync(urls -> Seen.filter(urls));
+		
+
 	}
-	
+
 	//Creates a new slave object for an address and enqueue it
 	public void insertSlave(String address){
 		logger.info("SLAVE REGISTERED IN QUEUE WITH ADDRESS {}", address);
@@ -161,14 +181,7 @@ public class Master {
 	//Call Selector class to fetch URL from frontier
 	public String getUrlFromFrontier() {
 		String response = Selector.select();
-		
-		//TODO: Deal with it two first conditions
-		if(response == EMPTY_EVENT)
-			return null;
-		else if(response == WAIT_EVENT)
-			return null;
-		else
-			return response;
+		return null;
 	}
 
 }

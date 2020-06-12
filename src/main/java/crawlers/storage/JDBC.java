@@ -12,17 +12,17 @@ import org.slf4j.LoggerFactory;
 
 public class JDBC {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(JDBC.class);
-	private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-	private static final String DATABASE_URL = "jdbc:mysql://localhos:1521:webcrawler";
+	private static final Logger logger = LoggerFactory.getLogger(JDBC.class);
+	private static final String JDBC_DRIVER = "org.postgresql.Driver";
+	private static final String DATABASE_URL = "jdbc:postgresql://localhost:5432/crawlers";
 	//TODO: Find secure way instead of hardcoding file prop maybe?
-	private static final String USERNAME = null;
-	private static final String PASSWORD = null;
+	private static final String USERNAME = "user";
+	private static final String PASSWORD = "pass";
 	
 	private static Connection connect() throws ClassNotFoundException, SQLException {
 		Connection connection = null;
 		
-		Class.forName("com.mysql.jdbc.Driver");
+		Class.forName(JDBC_DRIVER);
 		connection = DriverManager.getConnection(DATABASE_URL, USERNAME, PASSWORD);
 		
 		return connection;
@@ -41,23 +41,20 @@ public class JDBC {
 		Statement statement = null;		
 		
 		try {
+				
+			connection = connect();
+			statement = statement(connection);
+			ResultSet resultset = statement.executeQuery(query);
 			
-		connection = connect();
-		statement = statement(connection);
-		ResultSet resultset = statement.executeQuery(query);
+			while(resultset.next()) {
+				logger.info("Excuted query's result {}", resultset.getString(0));
+			}
+			
+			connection.close();
+			statement.close();
 		
-		while(resultset.next()) {
-			//Retrieve and return from resultset
-		}
-		
-		connection.close();
-		statement.close();
-		
-		}catch (SQLException e) {
-			LOGGER.error("SQLException triggered! {}", e);
-		}catch (ClassNotFoundException e) {
-			LOGGER.error("ClassNotFoundException triggered at query method! {}", e);
-		}
+		} catch (SQLException e) { logger.error("SQLException triggered! {}", e); }
+		catch (ClassNotFoundException e) { logger.error("ClassNotFoundException triggered at query method! {}", e); }
 		
 		_makeSureConnectionAndStatmentAreClosed(connection, statement);
 	}
@@ -68,9 +65,8 @@ public class JDBC {
 				connection.close();
 			if(Optional.ofNullable(statement).isPresent())
 				statement.close();
-			} catch (SQLException e) {
-				LOGGER.error("SQLException triggered at _makeSureCo.. method! {}", e);
-			}
+		} catch (SQLException e) {
+			logger.error("SQLException triggered at _makeSureCo.. method! {}", e); }
 	}
 	
 }

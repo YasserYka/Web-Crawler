@@ -5,3 +5,14 @@ services:
     image: redis:rc-alpine3.11
     ports:
       - "6379:6379"
+  database:
+    image: postgres
+    volumes:
+      - /private/var/lib/postgresql:/var/lib/postgresql
+    restart: always
+    ports:
+      -"5432:5432"
+    environment:
+      POSTGRES_PASSWORD: docker
+      POSTGRES_USER: docker
+  

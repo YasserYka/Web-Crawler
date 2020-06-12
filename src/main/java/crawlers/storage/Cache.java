@@ -17,4 +17,8 @@ public class Cache {
         return CACHE.get(key);
     }
 
+    public void set(String key, String value){
+        CACHE.fastPutAsync(key, value);
+    }
+
 }

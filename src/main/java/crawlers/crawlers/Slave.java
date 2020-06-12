@@ -10,6 +10,7 @@ import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
 import crawlers.modules.DNSResolution;
+import crawlers.storage.Cache;
 import crawlers.util.FakeData;
 
 import org.apache.http.HttpEntity;
@@ -21,10 +22,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.redisson.Redisson;
-import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
-import org.redisson.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,19 +66,22 @@ public class Slave {
 	private Random random;
 	//Instance of Redis
 	private RedissonClient redisson;
-	//Redis based distributed Map
-	private RMap<String, String> cache;
 	//Counter for RMap
 	private int counter;
 	//Apache's http client instance
     private  CloseableHttpClient httpClient;
     //default URL of Redis
     private final static String REDIS_ADDRESS = "redis://127.0.0.1:6379";
+	// Redis instance
+	private Cache cache;
+	// Master's instance name
+	private final static String REDIS_INSTNACE_NAME = "slave";
 
 	protected Slave() {
         busy = false;
         liveness = LIVNESS_OF_MASTER;
-        random = new Random(System.nanoTime());
+		random = new Random(System.nanoTime());
+		cache = new Cache(REDIS_INSTNACE_NAME);
 	}
 	
 	public void init() {
@@ -104,8 +105,6 @@ public class Slave {
 		    poller.register(DLR, ZMQ.Poller.POLLIN);
 		    poller.register(SUB, ZMQ.Poller.POLLIN); 
 		    
-		    establishConnectionToCache();
-
 		    while (true) {
 		    	//check for message in this interval
 		    	poller.poll(HEARTBEAT_INTERVAL);
@@ -140,7 +139,7 @@ public class Slave {
 	}
 	
 	public void addToCache(String key, String document) {
-		cache.fastPutAsync(key, document);
+		cache.set(key, document);
 	}
 	
 	//Takes key of where the document was stored in cache
@@ -170,21 +169,11 @@ public class Slave {
 		System.exit(0);
 	}
 	
-	public void establishConnectionToCache() {
-		redisson = Redisson.create(cacheConfiguration());
-		cache = redisson.getMap("test");
-	}
 	
 	public void sendRequestForWork() {
 		DLR.sendMore(READY_FOR_WORK);
 		DLR.send(" ");
 		logger.info("REQUEST FOR WORK SENT");
-	}
-	
-	public Config cacheConfiguration() {
-		Config config = new Config();
-		config.useSingleServer().setAddress(REDIS_ADDRESS);
-		return config;
 	}
 	
 	//Gets host-name's as IntetAddress format then makes get request and returns it's body as String

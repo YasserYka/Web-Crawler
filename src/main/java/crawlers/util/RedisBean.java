@@ -5,25 +5,15 @@ import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
 
-public class Cache {
+public class RedisBean {
 
 	//Redis's default address
     private final static String REDIS_ADDRESS = "redis://127.0.0.1:6379";
 	//Instance of Redis
-	private static RedissonClient redisson = null;
-	//Redis's based distributed Map
-	private static RMap<String, String> cache = null;
+	private static RedissonClient redisson = Redisson.create(configuration());
 	
-	public static RMap<String, String> initializeCache() {
-		
-		if(redisson == null) {
-			redisson = Redisson.create(configuration());
-		}
-		
-		if(cache == null) {
-			cache = redisson.getMap("test");
-		}
-		return cache;
+	public static RMap<String, String> getInstance(String mapname) {	
+		return redisson.getMap("test");
 	}
 	
 	private static Config configuration() {

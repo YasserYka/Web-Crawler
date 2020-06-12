@@ -1,9 +1,7 @@
 package crawlers.crawlers;
 
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 
@@ -16,22 +14,16 @@ import crawlers.modules.Seen;
 import crawlers.modules.exclusion.RobotTXT;
 import crawlers.modules.filter.Filter;
 import crawlers.modules.frontier.selector.Selector;
+import crawlers.storage.Cache;
 import crawlers.url.UrlLexer;
-import crawlers.util.Cache;
 import crawlers.util.FakeData;
-import io.netty.util.concurrent.CompleteFuture;
-import io.reactivex.Completable;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.PropertyConfigurator;
 import org.redisson.api.RMap;
-import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Master {
 
-	
 	public static void main(String args[]) throws UnknownHostException {
 		logger.info("MASTER IS UP AND RUNNING");
 		new Master().init();
@@ -55,22 +47,26 @@ public class Master {
 	//Time to send heart beat in msec
 	private long nextHeartbeat;
 	//event heart-beat
-	private final  static String HEARTBEAT = "001";
+	private final  static String HEARTBEAT_EVENT = "001";
 	//event ready-for-work;
-	private final static String READY_FOR_WORK = "002";
+	private final static String READY_FOR_WORK_EVENT = "002";
 	//event task is done
-	private final static String WORK_FINISHED = "003";
+	private final static String WORK_FINISHED_EVENT = "003";
 	//event task to be done
-	private final static String WORK_TO_BE_DONE = "004";
+	private final static String WORK_TO_BE_DONE_EVENT = "004";
 	//Address to bind-to for Dealer-Router locally
 	private final static String ROUTER_ADDRESS = "tcp://127.0.0.1:5555";
 	//Address to bind-to for Subscriber-Publisher locally
 	private final static String PUBLISHER_ADDRESS = "tcp://*:5556";
-	//Redis's based distributed Map
-	private static RMap<String, String> cache = null;
-
+	// Redis instance
+	private Cache cache;
+	// Master's instance name
+	private final static String REDIS_INSTNACE_NAME = "master";
 	
-	public Master() {queueOfSlaves = new LinkedList<String>();}
+	public Master() { 
+		queueOfSlaves = new LinkedList<String>();
+		cache = new Cache(REDIS_INSTNACE_NAME);
+	}
 
 	//Send work to all ready slaves
 	public void dispatchWork() {
@@ -88,8 +84,8 @@ public class Master {
 	public void sendWorkToThisAddress(String address){
 		ROUTER.sendMore(address);
 		//Send event work-to-be-done
-		ROUTER.sendMore(WORK_TO_BE_DONE);
-		//TODO: but the body to be sent in queue then send it index to slave
+		ROUTER.sendMore(WORK_TO_BE_DONE_EVENT);
+		//TODO: put the body to be sent in queue then send it index to slave
 		//Send body of message
 		ROUTER.send(FakeData.DOMAINNAME);
 		logger.info("WORK SENT TO SLAVE {}", address);
@@ -102,8 +98,6 @@ public class Master {
 	
 	public void init() {
 		try (ZContext context = new ZContext()) {
-
-			  cache = Cache.initializeCache();
 			
 			  ROUTER = context.createSocket(SocketType.ROUTER);
 		      PUBLISHER = context.createSocket(SocketType.PUB);
@@ -141,9 +135,9 @@ public class Master {
 		
 		logger.info("MESSAGE RECEIVED FROM SLAVE {}", frame1);
 
-		if(frame2.equals(READY_FOR_WORK))
+		if(frame2.equals(READY_FOR_WORK_EVENT))
 			insertSlave(frame1);
-		else if(frame2.equals(WORK_FINISHED))
+		else if(frame2.equals(WORK_FINISHED_EVENT))
 			handleFinishedWork(frame3);
 	}
 	
@@ -172,7 +166,7 @@ public class Master {
 	public void sendHearbeat() {
 		//It's time to send heart beat to all subscriber
 		if(System.currentTimeMillis() > nextHeartbeat) {
-			PUBLISHER.send(HEARTBEAT);
+			PUBLISHER.send(HEARTBEAT_EVENT);
 			logger.info("HEARTBEAT SENT TO SLAVES");
 			nextHeartbeat = System.currentTimeMillis() + HEARTBEAT_INTERVAL;
 		}

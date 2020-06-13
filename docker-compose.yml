@@ -8,11 +8,12 @@ services:
   database:
     image: postgres
     volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       - /private/var/lib/postgresql:/var/lib/postgresql
-    restart: always
+    restart: unless-stopped
     ports:
-      -"5432:5432"
+      - "5432:5432"
     environment:
-      POSTGRES_PASSWORD: docker
-      POSTGRES_USER: docker
-  
+      POSTGRES_PASSWORD: pass
+      POSTGRES_USER: user
+      POSTGRES_DB: crawlers

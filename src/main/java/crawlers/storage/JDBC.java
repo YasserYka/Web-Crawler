@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 public class JDBC {
 
+	private static final String INSERT_LINK_QUERY = "INSERT INTO links(id, link) VALUES (?,?)";
 	private static final Logger logger = LoggerFactory.getLogger(JDBC.class);
 	private static final String JDBC_DRIVER = "org.postgresql.Driver";
 	private static final String DATABASE_URL = "jdbc:postgresql://localhost:5432/crawlers";
@@ -19,21 +20,13 @@ public class JDBC {
 	private static final String USERNAME = "user";
 	private static final String PASSWORD = "pass";
 	
-	private static Connection connect() throws ClassNotFoundException, SQLException {
-		Connection connection = null;
-		
+	private static Connection connect() throws ClassNotFoundException, SQLException {		
 		Class.forName(JDBC_DRIVER);
-		connection = DriverManager.getConnection(DATABASE_URL, USERNAME, PASSWORD);
-		
-		return connection;
+		return DriverManager.getConnection(DATABASE_URL, USERNAME, PASSWORD);
 	}
 	
 	private static Statement statement(Connection connection) throws SQLException {
-		Statement statement = null;
-		
-		statement = connection.createStatement();
-
-		return statement;
+		return connection.createStatement();
 	}
 	
 	public static void query(String query) {
@@ -47,7 +40,7 @@ public class JDBC {
 			ResultSet resultset = statement.executeQuery(query);
 			
 			while(resultset.next()) {
-				logger.info("Excuted query's result {}", resultset.getString(0));
+				logger.info("Excuted query's result {}", resultset.getString(2));
 			}
 			
 			connection.close();

@@ -10,7 +10,7 @@ import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
 import crawlers.modules.DNSResolution;
-import crawlers.storage.Cache;
+import crawlers.storage.CacheService;
 import crawlers.util.FakeData;
 
 import org.apache.http.HttpEntity;
@@ -73,7 +73,7 @@ public class Slave {
     //default URL of Redis
     private final static String REDIS_ADDRESS = "redis://127.0.0.1:6379";
 	// Redis instance
-	private Cache cache;
+	private CacheService cacheService;
 	// Master's instance name
 	private final static String REDIS_INSTNACE_NAME = "slave";
 
@@ -81,7 +81,7 @@ public class Slave {
         busy = false;
         liveness = LIVNESS_OF_MASTER;
 		random = new Random(System.nanoTime());
-		cache = new Cache(REDIS_INSTNACE_NAME);
+		cacheService = new CacheService(REDIS_INSTNACE_NAME);
 	}
 	
 	public void init() {
@@ -139,7 +139,7 @@ public class Slave {
 	}
 	
 	public void addToCache(String key, String document) {
-		cache.set(key, document);
+		cacheService.set(key, document);
 	}
 	
 	//Takes key of where the document was stored in cache

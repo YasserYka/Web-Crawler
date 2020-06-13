@@ -4,12 +4,12 @@ import org.redisson.api.RMap;
 
 import crawlers.util.RedisBean;
 
-public class Cache {
+public class CacheService {
 
 	//Redis's based distributed Map
     private RMap<String, String> CACHE;
 
-    public Cache(String mapname){
+    public CacheService(String mapname){
         CACHE = RedisBean.getInstance(mapname);
     }
     

@@ -14,11 +14,10 @@ import crawlers.modules.Seen;
 import crawlers.modules.exclusion.RobotTXT;
 import crawlers.modules.filter.Filter;
 import crawlers.modules.frontier.selector.Selector;
-import crawlers.storage.Cache;
+import crawlers.storage.CacheService;
 import crawlers.url.UrlLexer;
 import crawlers.util.FakeData;
 
-import org.redisson.api.RMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,13 +58,13 @@ public class Master {
 	//Address to bind-to for Subscriber-Publisher locally
 	private final static String PUBLISHER_ADDRESS = "tcp://*:5556";
 	// Redis instance
-	private Cache cache;
+	private CacheService cacheService;
 	// Master's instance name
 	private final static String REDIS_INSTNACE_NAME = "master";
 	
 	public Master() { 
 		queueOfSlaves = new LinkedList<String>();
-		cache = new Cache(REDIS_INSTNACE_NAME);
+		cacheService = new CacheService(REDIS_INSTNACE_NAME);
 	}
 
 	//Send work to all ready slaves
@@ -145,7 +144,7 @@ public class Master {
 	public void handleFinishedWork(String key) {
 		logger.info("SLAVE FINISHED CRAWLING THIS DOMAINNAME {}", key);
 				
-		CompletableFuture.supplyAsync(() -> cache.get(key))
+		CompletableFuture.supplyAsync(() -> cacheService.get(key))
 			.thenApplyAsync(doc -> UrlLexer.extractURLs(doc))
 				.thenApplyAsync(urls -> RelativeUrlResolver.normalize(key, urls))
 					.thenApplyAsync(urls -> Filter.drop(urls))

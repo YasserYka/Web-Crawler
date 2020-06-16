@@ -16,7 +16,6 @@ import crawlers.modules.filter.Filter;
 import crawlers.modules.frontier.selector.Selector;
 import crawlers.storage.CacheService;
 import crawlers.url.UrlLexer;
-import crawlers.util.FakeData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +85,7 @@ public class Master {
 		ROUTER.sendMore(WORK_TO_BE_DONE_EVENT);
 		//TODO: put the body to be sent in queue then send it index to slave
 		//Send body of message
-		ROUTER.send(FakeData.DOMAINNAME);
+		//ROUTER.send(FakeData.DOMAINNAME);
 		logger.info("WORK SENT TO SLAVE {}", address);
 	}
 	

@@ -11,7 +11,6 @@ import org.zeromq.ZMQ;
 
 import crawlers.modules.DNSResolution;
 import crawlers.storage.CacheService;
-import crawlers.util.FakeData;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -213,7 +212,7 @@ public class Slave {
 		busy = true; 
 		String address = DNSResolution.resolveHostnameToIP(domainName).getHostAddress();
 		URI uri = buildUri(address);
-		addToCache(domainName, FakeData.HTML_DOCUMENT);
+		//addToCache(domainName, FakeData.HTML_DOCUMENT);
 		handleFinishedWork(domainName);
 	}	
 	

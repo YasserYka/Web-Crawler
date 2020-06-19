@@ -50,7 +50,7 @@ public class MakeRequest {
 	
 	public static String getContentOf(String domainName, String path) {
 		
-		String address = DNSResolution.resolveHostnameToIP(domainName).getHostAddress();
+		String address = DNSResolution.resolveHostnameToIP("www.google.com").getHostAddress();
 		
 		URI uri = buildUri(address, path);
 		
@@ -92,7 +92,7 @@ public class MakeRequest {
 	
 	//Sends head request
 	public static boolean isFound(String domainName, String path) {
-		String address = DNSResolution.resolveHostnameToIP(domainName).getHostAddress();
+		String address = DNSResolution.resolveHostnameToIP("www.google.com").getHostAddress();
 		
 		URI uri = buildUri(address, path);
 		

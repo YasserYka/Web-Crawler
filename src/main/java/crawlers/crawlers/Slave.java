@@ -139,7 +139,6 @@ public class Slave {
 				}
 
 		    	if(!pollin_SUB && !pollin_DLR){
-					//here is the problem
 					logger.info("MASTER HAVEN'T SENT HEARTBEAT YET, THE LIVNESS BEFORE OPERATING SELF DESTRUCTION {}", liveness);
 					//if liveness equal zero means master is down call selfDestruction
 		    		if(--liveness == 0)
@@ -218,7 +217,7 @@ public class Slave {
 	public void crawl(String domainName){
 		logger.info("REQUEST SENT TO DOMAINNAME {}", domainName);
 		busy = true; 
-		String address = DNSResolution.resolveHostnameToIP(domainName).getHostAddress();
+		//String address = DNSResolution.resolveHostnameToIP(domainName).getHostAddress();
 		URI uri = buildUri(address);
 		cacheService.set(domainName, Fake.loadHtml());
 		handleFinishedWork(domainName);

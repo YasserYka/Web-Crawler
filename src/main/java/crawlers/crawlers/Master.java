@@ -84,7 +84,7 @@ public class Master {
 		ROUTER.sendMore(WORK_TO_BE_DONE_EVENT);
 		//TODO: put the body to be sent in queue then send it index to slave
 		//Send body of message
-		ROUTER.send("www.google.com");
+		ROUTER.send("https://www.webhostface.com/blog/top-10-most-popular-websites-for-2017/");
 		logger.info("WORK SENT TO SLAVE {}", address);
 	}
 	

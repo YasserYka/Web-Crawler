@@ -16,7 +16,7 @@ public class RelativeUrlResolver {
 	 * Stolen regex from stackoverflow url:https://stackoverflow.com/questions/31430167/regex-check-if-given-string-is-relative-url
 	 * well the URI of above's URI says what I'm gonna say next, this regex used to indicate if given URL is relative or absolute 
 	*/
-	private static final Pattern IS_ABSOLUTE_PATTERN = Pattern.compile("^([a-z0-9]*:|.{0})\\/\\/.*$");
+	private static final Pattern IS_ABSOLUTE_PATTERN = Pattern.compile("([a-z0-9]*:|.{0})\\/\\/.*");
 		
 	private static Matcher matcher;
 	
@@ -88,14 +88,17 @@ public class RelativeUrlResolver {
 	//Iterate through URLs and turn every relative to absolute URL with 
 	public static List<String> normalize(String url, List<String> urls) {	
 		int lengthOfUrls = urls.size(), i;
-		String tempUrl;
+		String tempUrl, resolvedUrl;
 		
 		for(i = 0; i < lengthOfUrls; i++) {
 			tempUrl = urls.remove(0);
 			if(isAbsolute(tempUrl))
 				urls.add(tempUrl);
-			else
-				urls.add(resolve(url, tempUrl));		
+			else{
+				resolvedUrl = resolve(url, tempUrl);
+				if(resolve(url, tempUrl) != null) 
+					urls.add(resolvedUrl);
+			}		
 		}
 		
 		return urls;

@@ -11,6 +11,7 @@ import org.zeromq.ZMQ;
 
 import crawlers.modules.DNSResolution;
 import crawlers.storage.CacheService;
+import crawlers.util.Fake;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -29,7 +30,7 @@ public class Slave {
 
 	public static void main(String args[]) {
 		logger.info("THE CRAWLER IS UP AND RUNNING");
-		new Slave().init();
+		new Slave().run();
 	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(Slave.class);
@@ -44,7 +45,7 @@ public class Slave {
 	//This set to true if work not done yet
 	private boolean busy;
 	//Master will send heart beats every 5mscs
-	private final static int HEARTBEAT_INTERVAL = 5000;
+	private final static int EXPECTED_HEARTBEAT_INTERVAL = 7500;
 	//Liveness of the master (when we don't receive heart beat form master 10 times (10 heart beat intervals) means the master is down)
 	private final static int LIVNESS_OF_MASTER = 10;
 	//event heart-beat
@@ -83,12 +84,15 @@ public class Slave {
 		cacheService = new CacheService(REDIS_INSTNACE_NAME);
 	}
 	
-	public void init() {
+	public void run() {
 		try (ZContext context = new ZContext()) {
 			
 			DLR = context.createSocket(SocketType.DEALER);
 			SUB = context.createSocket(SocketType.SUB);
-		    poller = context.createPoller(2);
+			poller = context.createPoller(2);
+			
+			boolean pollin_SUB = false;
+			boolean pollin_DLR = false;
 		    
 		    //Set identity for master
 		    address = String.format("%04X-%04X", random.nextInt(), random.nextInt());
@@ -106,28 +110,36 @@ public class Slave {
 		    
 		    while (true) {
 		    	//check for message in this interval
-		    	poller.poll(HEARTBEAT_INTERVAL);
+		    	poller.poll(EXPECTED_HEARTBEAT_INTERVAL);
 		    	
-		    	//Received message from master via dealer
-		    	if(poller.pollin(0)) {
+				//Received message from master via dealer
+				
+				pollin_DLR = poller.pollin(0); 
+			
+		    	if(pollin_DLR) {
 		    		String event = DLR.recvStr();
 		    		String body = DLR.recvStr();
 		    		if(event.equals(WORK_TO_BE_DONE)) {
 			    		logger.info("WORK RECIVED FORM MASTER WITH BODY {}", body);
 		    			crawl(body);
 		    		}
-		    	}
-		        
-		    	//Heart beat from master
-		    	if(poller.pollin(1)) {
+				}
+				
+				//Heart beat from master
+				pollin_SUB = poller.pollin(1);
+
+		    	if(pollin_SUB) {
 		    		String messageReceived = SUB.recvStr();
 
 		    		//If message from master is a heart beat handle it other wise 
 		    		if(messageReceived.equals(HEARTBEAT))
 		    			handleHeartbeat();
 		    		else
-		    			handleWrongMessage(messageReceived);
-		    	}else{
+						handleWrongMessage(messageReceived);
+				}
+
+		    	if(!pollin_SUB && !pollin_DLR){
+					//here is the problem
 					logger.info("MASTER HAVEN'T SENT HEARTBEAT YET, THE LIVNESS BEFORE OPERATING SELF DESTRUCTION {}", liveness);
 					//if liveness equal zero means master is down call selfDestruction
 		    		if(--liveness == 0)
@@ -136,11 +148,7 @@ public class Slave {
 		      }
 		}
 	}
-	
-	public void addToCache(String key, String document) {
-		cacheService.set(key, document);
-	}
-	
+		
 	//Takes key of where the document was stored in cache
 	public void handleFinishedWork(String key) {
 		DLR.sendMore(WORK_FINISHED);
@@ -212,7 +220,7 @@ public class Slave {
 		busy = true; 
 		String address = DNSResolution.resolveHostnameToIP(domainName).getHostAddress();
 		URI uri = buildUri(address);
-		//addToCache(domainName, FakeData.HTML_DOCUMENT);
+		cacheService.set(domainName, Fake.loadHtml());
 		handleFinishedWork(domainName);
 	}	
 	

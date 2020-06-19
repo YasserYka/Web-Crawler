@@ -24,7 +24,7 @@ public class Master {
 
 	public static void main(String args[]) throws UnknownHostException {
 		logger.info("MASTER IS UP AND RUNNING");
-		new Master().init();
+		new Master().run();
 	}
 	
     private static final Logger logger = LoggerFactory.getLogger(Master.class);
@@ -69,9 +69,8 @@ public class Master {
 	//Send work to all ready slaves
 	public void dispatchWork() {
 		//while there is URLs in frontier give them to slaves
-		while(queueOfSlaves.size() > 0 && existUrlInFrontier()) {
+		while(queueOfSlaves.size() > 0 && existUrlInFrontier())
 			sendWorkToThisAddress(getReadySlaveAddress());
-		}
 	}
 	
 	public String getReadySlaveAddress(){
@@ -85,16 +84,17 @@ public class Master {
 		ROUTER.sendMore(WORK_TO_BE_DONE_EVENT);
 		//TODO: put the body to be sent in queue then send it index to slave
 		//Send body of message
-		//ROUTER.send(FakeData.DOMAINNAME);
+		ROUTER.send("www.google.com");
 		logger.info("WORK SENT TO SLAVE {}", address);
 	}
 	
 	//If url exit fetch it 
+	//TODO: change this when the frontier is ready
 	public boolean existUrlInFrontier() {
 		return true;
 	}
 	
-	public void init() {
+	public void run() {
 		try (ZContext context = new ZContext()) {
 			
 			  ROUTER = context.createSocket(SocketType.ROUTER);
@@ -110,10 +110,10 @@ public class Master {
 		      nextHeartbeat = System.currentTimeMillis() + HEARTBEAT_INTERVAL;
 		      
 		      while (true) {
-		    	  
-		    	poller.poll(HEARTBEAT_INTERVAL);
-		    	//if it's time to send heart beat send it
-		    	sendHearbeat();
+				poller.poll(HEARTBEAT_INTERVAL);
+
+				//if it's time to send heart beat send it
+				sendHearbeat();
 
 		    	//If there is a URL in frontier dispatch it to available slave
 		    	dispatchWork();
@@ -131,7 +131,7 @@ public class Master {
 	//Takes the event frame and take action upon it
 	public void handleMessage(String frame1, String frame2, String frame3) {
 		
-		logger.info("MESSAGE RECEIVED FROM SLAVE {}", frame1);
+		//logger.info("MESSAGE RECEIVED FROM SLAVE {}", frame1);
 
 		if(frame2.equals(READY_FOR_WORK_EVENT))
 			insertSlave(frame1);
@@ -150,15 +150,13 @@ public class Master {
 						.thenApplyAsync(urls -> RobotTXT.filter(key, urls))
 							.thenAcceptAsync(urls -> Seen.filter(urls));
 		
-
 	}
 
 	//Creates a new slave object for an address and enqueue it
 	public void insertSlave(String address){
-		logger.info("SLAVE REGISTERED IN QUEUE WITH ADDRESS {}", address);
 		queueOfSlaves.add(address);
+		logger.info("SLAVE REGISTERED IN QUEUE WITH ADDRESS {}", address);
 	}
-	
 	
 	//This needs to be sent to alert slaves that master a live and if any new subscriber haven't pushed in queue and in idle state 
 	public void sendHearbeat() {

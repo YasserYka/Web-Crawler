@@ -3,7 +3,7 @@ package crawlers.modules.frontier.selector;
 import java.util.Calendar;
 import java.util.PriorityQueue;
 
-import crawlers.configuration.all;
+import crawlers.configuration.Config;
 import crawlers.modules.frontier.Backend;
 
 public class Selector {
@@ -38,6 +38,6 @@ public class Selector {
 	}
 	
 	public static void add(String url) {
-		HEAP.add(new Element(url, all.TIME_GAP));
+		HEAP.add(new Element(url, Config.TIME_GAP));
 	}
 }

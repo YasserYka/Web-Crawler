@@ -1,6 +1,6 @@
 package crawlers.configuration;
 
-public class all {
+public class Config {
 
 	//Universal proposed waiting time before sending next request
 	public static final int WAITING_TIME = 60;

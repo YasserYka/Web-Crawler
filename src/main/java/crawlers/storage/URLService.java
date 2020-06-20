@@ -26,6 +26,7 @@ public class URLService {
 
 	@SneakyThrows(SQLException.class)
 	public void add(URL url) {
+		System.out.println("added!!");
 		PreparedStatement preparedStatement = connection.prepareStatement(INSERT_URL_QUERY);
 		preparedStatement.setString(1, url.getUrl());
 		preparedStatement.setDate(2, new Date(System.currentTimeMillis()));
@@ -34,10 +35,10 @@ public class URLService {
 	}
 	
 	@SneakyThrows(SQLException.class)
-	public void getAll(String query) {		
+	public void getAll() {		
 		PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_URLS_QUERY);
 		
-		ResultSet resultset = preparedStatement.executeQuery(query);
+		ResultSet resultset = preparedStatement.executeQuery();
 		
 		while(resultset.next())
 			logger.info("Excuted query's result {} {} {}", resultset.getInt(1), resultset.getString(2), resultset.getDate(3));

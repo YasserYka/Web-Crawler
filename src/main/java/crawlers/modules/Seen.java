@@ -12,7 +12,6 @@ public class Seen {
 	private static RBloomFilter<String> BLOOM_FILTER;
 	
 	static {
-
 		//connect to it's default 127.0.0.1:6379
 		CLIENT = Redisson.create();
 		
@@ -48,11 +47,7 @@ public class Seen {
 				//Add it back to the list
 				urls.add(url);
 			}
-			System.out.println("in seen");
 		}
-
-		System.out.println("Seen: ");
-		urls.stream().forEach(System.out::println);
 
 		return urls;
 	}

@@ -38,7 +38,7 @@ public class Master {
 	// Event to handle event in getUrlFromFrontier
 	private final static String WAIT_EVENT = "WAIT";
 	// Holds addresses of slaves whom ready for work
-	private Queue<String> queueOfSlaves;
+	private Queue<String> queueOfSlaves = new LinkedList<String>();
 	// Router socket for Dealer-Router pattern
 	private ZMQ.Socket ROUTER;
 	// Publisher socket for Subscriber-Publisher pattern used to send heart beat to
@@ -63,15 +63,13 @@ public class Master {
 	// Address to bind-to for Subscriber-Publisher locally
 	private final static String PUBLISHER_ADDRESS = "tcp://*:5556";
 	// Redis instance
-	private CacheService cacheService;
+	private CacheService cacheService = new CacheService(REDIS_INSTNACE_NAME);
 	// Master's instance name
 	private final static String REDIS_INSTNACE_NAME = "master";
 	// Postgres Url service
 	private URLService urlService;
 
 	public Master() throws ClassNotFoundException, SQLException {
-		queueOfSlaves = new LinkedList<String>();
-		cacheService = new CacheService(REDIS_INSTNACE_NAME);
 		urlService = new URLService();
 	}
 
@@ -128,20 +126,16 @@ public class Master {
 				dispatchWork();
 						    	
 		    	//message received from slave
-		    	if(poller.pollin(0)) {
+		    	if(poller.pollin(0))
 		    		//The message received from slave should have three part first part is address second part is event type and third part is body content
-
 					handleMessage(ROUTER.recvStr(), ROUTER.recvStr(), ROUTER.recvStr());
-		    	}
 		     }
 		}
 	}
 	
 	//Takes the event frame and take action upon it
 	public void handleMessage(String frame1, String frame2, String frame3) {
-		
-		//logger.info("MESSAGE RECEIVED FROM SLAVE {}", frame1);
-
+		logger.info("MESSAGE RECEIVED FROM SLAVE {}", frame1);
 		if(frame2.equals(READY_FOR_WORK_EVENT))
 			insertSlave(frame1);
 		else if(frame2.equals(WORK_FINISHED_EVENT))
@@ -151,7 +145,6 @@ public class Master {
 	//When slave sends back response that means an crawled 
 	public void handleFinishedWork(String key) {
 		logger.info("SLAVE FINISHED CRAWLING DOMAINNAME: {}", key);
-				
 		CompletableFuture.supplyAsync(() -> cacheService.get(key))
 			.thenApplyAsync(doc -> UrlLexer.extractURLs(doc))
 				.thenApplyAsync(urls -> RelativeUrlResolver.normalize(key, urls))

@@ -9,7 +9,6 @@ import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
-import crawlers.modules.DNSResolution;
 import crawlers.storage.CacheService;
 import crawlers.util.Fake;
 
@@ -43,7 +42,7 @@ public class Slave {
 	//to read from multiple sockets
 	private ZMQ.Poller poller;
 	//This set to true if work not done yet
-	private boolean busy;
+	private boolean busy = false;
 	//Master will send heart beats every 5mscs
 	private final static int EXPECTED_HEARTBEAT_INTERVAL = 7500;
 	//Liveness of the master (when we don't receive heart beat form master 10 times (10 heart beat intervals) means the master is down)
@@ -57,13 +56,13 @@ public class Slave {
 	//event task to be done
 	private final static String WORK_TO_BE_DONE = "004";
 	//Counter for liveness of master
-    private int liveness;
+    private int liveness = LIVNESS_OF_MASTER;
 	//Address to bind-to for Dealer-Router locally
 	private final String DEALER_ADDRESS = "tcp://127.0.0.1:5555";
 	//Address to bind-to for Subscriber-Publisher locally
 	private final String SUBSCRIBER_ADDRESS = "tcp://localhost:5556";
 	//Used to generate unique identity
-	private Random random;
+	private Random random = new Random(System.nanoTime());
 	//Instance of Redis
 	private RedissonClient redisson;
 	//Counter for RMap
@@ -73,16 +72,9 @@ public class Slave {
     //default URL of Redis
     private final static String REDIS_ADDRESS = "redis://127.0.0.1:6379";
 	// Redis instance
-	private CacheService cacheService;
+	private CacheService cacheService = new CacheService(REDIS_INSTNACE_NAME);
 	// Master's instance name
 	private final static String REDIS_INSTNACE_NAME = "slave";
-
-	protected Slave() {
-        busy = false;
-        liveness = LIVNESS_OF_MASTER;
-		random = new Random(System.nanoTime());
-		cacheService = new CacheService(REDIS_INSTNACE_NAME);
-	}
 	
 	public void run() {
 		try (ZContext context = new ZContext()) {

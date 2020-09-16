@@ -1,4 +1,4 @@
-package crawlers.modules.exclusion;
+package crawlers.modules;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

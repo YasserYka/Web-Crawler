@@ -21,32 +21,6 @@ public class MakeRequest {
 	
     private static  CloseableHttpClient httpClient;
 
-	private static String get(URI uri){
-		
-	    httpClient = HttpClients.createDefault();
-
-		HttpGet request = null;
-        HttpEntity entity = null;
-		String body = "";
-		
-		try{
-			request = new HttpGet(uri);
-			request.addHeader(HttpHeaders.USER_AGENT, "Googlebot");
-
-			CloseableHttpResponse response = httpClient.execute(request);
-			
-        	if(response.getStatusLine().getStatusCode() == 200)
-        		entity = response.getEntity();
-        	
-        	if(entity != null)
-        		body = EntityUtils.toString(entity);
-        	
-		}
-        catch(ClientProtocolException cpe) {cpe.printStackTrace();}
-        catch (IOException ie) {ie.printStackTrace();}
-        
-        return body;
-	}
 	
 	public static String getContentOf(String domainName, String path) {
 		
@@ -97,5 +71,35 @@ public class MakeRequest {
 		URI uri = buildUri(address, path);
 		
 		return head(uri);
+	}
+
+	//Gets host-name's as IntetAddress format then makes get request and returns it's body as String
+	public static String get(URI uri) {
+		//getHostAddress convert InetAddress to string presentation
+		HttpGet request = new HttpGet(uri);
+		httpClient = HttpClients.createDefault();
+		HttpEntity entity = null;
+		String content = "";
+		
+		request.addHeader(HttpHeaders.USER_AGENT, "Googlebot");
+		
+		try (CloseableHttpResponse response = httpClient.execute(request)) {
+			
+			System.out.println("HTTP request has been sent to " + uri.toURL());
+			
+			response.getAllHeaders().toString();
+			
+			if(response.getStatusLine().getStatusCode() == 200){
+				entity = response.getEntity();
+				content = response.getAllHeaders().toString();
+			}
+				
+			if(entity != null)
+				content += EntityUtils.toString(entity);
+		}
+		catch(ClientProtocolException cpe) { cpe.printStackTrace(); }
+		catch (IOException ie) { ie.printStackTrace(); }
+		
+		return content;
 	}
 }

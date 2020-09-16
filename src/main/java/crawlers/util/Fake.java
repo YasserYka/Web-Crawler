@@ -6,6 +6,7 @@ import java.io.IOException;
 
 public class Fake {
     
+    // loads fake html file for testing
     public static String loadHtml(){
         StringBuilder content = new StringBuilder();
         try {

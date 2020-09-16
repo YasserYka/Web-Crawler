@@ -1,4 +1,4 @@
-package crawlers.modules.filter;
+package crawlers.modules;
 
 import java.util.List;
 import java.util.regex.Pattern;

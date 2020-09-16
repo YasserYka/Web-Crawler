@@ -3,6 +3,7 @@ package crawlers.storage;
 import java.sql.Connection;
 import java.sql.Date;
 import java.util.Optional;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,13 +21,11 @@ public class URLService {
 	private static final Logger logger = LoggerFactory.getLogger(URLService.class);
 	private Connection connection;
 
-	public URLService() throws ClassNotFoundException, SQLException {
-		connection = JDBCBean.getConnection();
-	}
+	@SneakyThrows(Exception.class)
+	public URLService() { connection = JDBCBean.getConnection(); }
 
 	@SneakyThrows(SQLException.class)
 	public void add(URL url) {
-		System.out.println("added!!");
 		PreparedStatement preparedStatement = connection.prepareStatement(INSERT_URL_QUERY);
 		preparedStatement.setString(1, url.getUrl());
 		preparedStatement.setDate(2, new Date(System.currentTimeMillis()));

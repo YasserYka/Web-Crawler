@@ -18,7 +18,7 @@ public class DNSResolution {
 	//Gets a host-name and returns address as IntetAddress asynchronously
 	public static InetAddress resolveHostnameToIP(String hostname) {
 		InetAddress address = null;
-		try {address = resolver.resolve(hostname).get();} catch (InterruptedException | ExecutionException e) {/*TODO: LOG IT*/e.printStackTrace();}
+		try {address = resolver.resolve(hostname).get();} catch (InterruptedException | ExecutionException e) { e.printStackTrace(); }
 		return address;
 	}
 }

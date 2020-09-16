@@ -10,9 +10,7 @@ public class RobotTXT {
 	
 	private static final String ROBOTS_TXT_PATH = "/robots.txt";
 	
-	//TODO: override apache's DNS resolver
-	
-	private  static String getRobotsTxt(String domainName){
+	private static String getRobotsTxt(String domainName){
 		String robotstxt = null;
 		//Sends head request to check if it's exist
 		if(MakeRequest.isFound(domainName, ROBOTS_TXT_PATH)) {

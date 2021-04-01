@@ -16,9 +16,16 @@ import crawlers.storage.CacheService;
 public class Master {
 
 	public static void main(String args[]) {
-		logger.info("MASTER IS UP AND RUNNING");
-		Frontier.insert("google.com");
-		new Master().run();
+
+		// 'standby' is environment properties will be passed as command line argument as -Dstandby="true"
+		boolean standby = Boolean.getBoolean("standby");
+
+		if (standby)
+			logger.info("MASTER IS RUNNING IN STANDBY MODE WAITING FOR ACTIVE MASTER TO DIE");
+		else 
+			logger.info("MASTER IS UP AND RUNNING IN ACTIVE MODE");
+		
+		new Master(standby).run();
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(Master.class);
@@ -51,6 +58,13 @@ public class Master {
 	private CacheService cacheService = new CacheService(REDIS_INSTNACE_NAME);
 	// Master's instance name
 	private final static String REDIS_INSTNACE_NAME = "master";
+	// for achieving passive-active availability
+	private final boolean standby;
+
+	public Master(boolean standby){
+
+		this.standby = standby;
+	}
 
 	//Send work to all ready slaves
 	public void dispatchWork() {

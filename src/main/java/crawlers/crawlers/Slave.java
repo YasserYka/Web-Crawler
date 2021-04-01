@@ -54,8 +54,6 @@ public class Slave {
 	private final String SUBSCRIBER_ADDRESS = "tcp://localhost:5556";
 	// Used to generate unique identity
 	private Random random = new Random(System.nanoTime());
-	// Apache's http client instance
-	private CloseableHttpClient httpClient;
 	// Master's instance name
 	private final static String REDIS_INSTNACE_NAME = "slave";
 	// Redis instance

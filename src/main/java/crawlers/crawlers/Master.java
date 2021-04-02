@@ -20,10 +20,14 @@ public class Master {
 		// 'standby' is environment properties will be passed as command line argument as -Dstandby="true"
 		boolean standby = Boolean.getBoolean("standby");
 
-		if (standby)
+		if (standby){
 			logger.info("MASTER IS RUNNING IN STANDBY MODE WAITING FOR ACTIVE MASTER TO DIE");
-		else 
+			new Master().passive();		
+		}
+		else{
 			logger.info("MASTER IS UP AND RUNNING IN ACTIVE MODE");
+			new Master().active();
+		} 
 		
 	}
 
@@ -61,14 +65,12 @@ public class Master {
 	private CacheService cacheService = new CacheService(REDIS_INSTNACE_NAME);
 	// Master's instance name
 	private final static String REDIS_INSTNACE_NAME = "master";
-	// for achieving passive-active availability
-	private final boolean standby;
+	// Liveness of the active master (when we don't receive heart beat form master 10 times
+	// (10 heart beat intervals) means the active master is down)
+	private final static int LIVNESS_OF_ACTIVE_MASTER = 10;
+	// Counter for liveness of master
+	private int liveness = LIVNESS_OF_ACTIVE_MASTER;
 
-
-	public Master(boolean standby){
-
-		this.standby = standby;
-	}
 
 	// Send work to all ready slaves
 	public void dispatchWork() {
@@ -111,9 +113,20 @@ public class Master {
 
 			SUBSCRIBER.connect(SUBSCRIBER_ADDRESS);
 
+			// don't block if not received anything 
+			SUBSCRIBER.setReceiveTimeOut(HEARTBEAT_INTERVAL);
+			
 			while (true) {
 
 				String messageReceived = SUBSCRIBER.recvStr();
+
+				if(messageReceived == null){
+					logger.info("Master haven't sent heartbeat yet, the livness before operating self promoting {}", liveness);
+
+					if (--liveness == 0)
+						selfPromoting(context);
+				}
+
 			}
 		}
 	}

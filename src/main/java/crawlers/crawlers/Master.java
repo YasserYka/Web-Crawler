@@ -25,7 +25,6 @@ public class Master {
 		else 
 			logger.info("MASTER IS UP AND RUNNING IN ACTIVE MODE");
 		
-		new Master(standby).run();
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(Master.class);
@@ -36,6 +35,10 @@ public class Master {
 	// Publisher socket for Subscriber-Publisher pattern used to send heart beat to
 	// master
 	private ZMQ.Socket PUBLISHER;
+	// subscriber socket for Subscriber-Publisher pattern used to receive heartbeat from active master
+	private ZMQ.Socket SUBSCRIBER;
+	// Address to bind-to for Subscriber-Publisher locally
+	private final String SUBSCRIBER_ADDRESS = "tcp://localhost:5556";
 	// to read from multiple sockets
 	private ZMQ.Poller poller;
 	// Time to wait before sending next heart beat
@@ -61,14 +64,15 @@ public class Master {
 	// for achieving passive-active availability
 	private final boolean standby;
 
+
 	public Master(boolean standby){
 
 		this.standby = standby;
 	}
 
-	//Send work to all ready slaves
+	// Send work to all ready slaves
 	public void dispatchWork() {
-		//while there is URLs in frontier give them to slaves
+		// while there is URLs in frontier give them to slaves
 		while(queueOfSlaves.size() > 0 && urlReadyInFrontier())
 			sendWorkTo(getReadySlaveAddress());
 
@@ -82,9 +86,9 @@ public class Master {
 	public void sendWorkTo(String address){
 		// First packet must be the address of the slave
 		ROUTER.sendMore(address);
-		//Send event work-to-be-done
+		// Send event work-to-be-done
 		ROUTER.sendMore(WORK_TO_BE_DONE_EVENT);
-		//Send body of message
+		// Send body of message
 		ROUTER.send(Frontier.get());
 
 		logger.info("Work sent to slave {}", address);
@@ -94,8 +98,27 @@ public class Master {
 	public static boolean urlReadyInFrontier() {
 		return Frontier.ready(); 
 	}
+
+	// Master running in standby will just keep receiving heartbeat from active master util it stop then it will be promoted to run in active mode   
+	public void passive() {
+		try (ZContext context = new ZContext()) {
+
+			// Sub subscribe to all kind of message of master (disable filtering)
+			SUBSCRIBER = context.createSocket(SocketType.SUB);
+
+			// Sub subscribe to all kind of message of master (disable filtering)
+			SUBSCRIBER.subscribe(ZMQ.SUBSCRIPTION_ALL);
+
+			SUBSCRIBER.connect(SUBSCRIBER_ADDRESS);
+
+			while (true) {
+
+				String messageReceived = SUBSCRIBER.recvStr();
+			}
+		}
+	}
 	
-	public void run() {
+	public void active() {
 		try (ZContext context = new ZContext()) {
 			
 			  ROUTER = context.createSocket(SocketType.ROUTER);
@@ -105,7 +128,7 @@ public class Master {
 		      PUBLISHER.bind(PUBLISHER_ADDRESS);
 		      ROUTER.bind(ROUTER_ADDRESS);
 		      
-		      //Register two sockets in poller so to listen on both sockets
+		      // Register two sockets in poller so to listen on both sockets
 		      poller.register(ROUTER, ZMQ.Poller.POLLIN);
 		      poller.register(PUBLISHER, ZMQ.Poller.POLLIN);
 		      nextHeartbeat = System.currentTimeMillis() + HEARTBEAT_INTERVAL;
@@ -113,21 +136,21 @@ public class Master {
 		      while (true) {
 				poller.poll(HEARTBEAT_INTERVAL);
 
-				//if it's time to send heart beat send it
+				// If it's time to send heart beat send it
 				sendHearbeat();
 
-		    	//If there is a URL in frontier dispatch it to available slave
+		    	// If there is a URL in frontier dispatch it to available slave
 				dispatchWork();
 						    	
-		    	//message received from slave
+		    	// Message received from slave
 		    	if(poller.pollin(0))
-		    		//The message received from slave should have three part first part is address second part is event type and third part is body content
+		    		// The message received from slave should have three part first part is address second part is event type and third part is body content
 					handleMessage(ROUTER.recvStr(), ROUTER.recvStr(), ROUTER.recvStr());
 		     }
 		}
 	}
 	
-	//Takes the event frame and take action upon it
+	// Takes the event frame and take action upon it
 	public void handleMessage(String frame1, String frame2, String frame3) {
 		logger.info("Message received from slave {}", frame1);
 		if(frame2.equals(READY_FOR_WORK_EVENT))
@@ -136,21 +159,21 @@ public class Master {
 			handleFinishedWork(frame3);
 	}
 	
-	//When slave sends back response that means an crawled 
+	// When slave sends back response that means an crawled 
 	public void handleFinishedWork(String key) {
 		logger.info("Thread created for preprosscing : {}", key);
 		new Preprocessor(cacheService.get(key), key);
 	}
 
-	//Creates a new slave object for an address and enqueue it
+	// Creates a new slave object for an address and enqueue it
 	public void insertSlave(String address){
 		queueOfSlaves.add(address);
 		logger.info("Slave registered in queue with address {}", address);
 	}
 	
-	//This needs to be sent to alert slaves that master a live and if any new subscriber haven't pushed in queue and in idle state 
+	// This needs to be sent to alert slaves that master a live and if any new subscriber haven't pushed in queue and in idle state 
 	public void sendHearbeat() {
-		//It's time to send heart beat to all subscriber
+		// It's time to send heart beat to all subscriber
 		if(System.currentTimeMillis() > nextHeartbeat) {
 			PUBLISHER.send(HEARTBEAT_EVENT);
 			logger.info("Heartbeat sent to slaves");

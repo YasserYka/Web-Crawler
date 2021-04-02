@@ -34,14 +34,12 @@ public class Master {
 	private static final Logger logger = LoggerFactory.getLogger(Master.class);
 	// Holds addresses of slaves whom ready for work
 	private Queue<String> queueOfSlaves = new LinkedList<String>();
-	// Router socket for Dealer-Router pattern
-	private ZMQ.Socket ROUTER;
-	// Publisher socket for Subscriber-Publisher pattern used to send heart beat to
+	// router socket for Dealer-router pattern
+	private ZMQ.Socket router;
+	// publisher socket for Subscriber-publisher pattern used to send heart beat to
 	// master
-	private ZMQ.Socket PUBLISHER;
-	// subscriber socket for Subscriber-Publisher pattern used to receive heartbeat from active master
-	private ZMQ.Socket SUBSCRIBER;
-	// Address to bind-to for Subscriber-Publisher locally
+	private ZMQ.Socket publisher;	
+	// Address to bind-to for Subscriber-publisher locally
 	private final String SUBSCRIBER_ADDRESS = "tcp://localhost:5556";
 	// to read from multiple sockets
 	private ZMQ.Poller poller;
@@ -57,10 +55,10 @@ public class Master {
 	private final static String WORK_FINISHED_EVENT = "003";
 	// event task to be done
 	private final static String WORK_TO_BE_DONE_EVENT = "004";
-	// Address to bind-to for Dealer-Router locally
-	private final static String ROUTER_ADDRESS = "tcp://127.0.0.1:5555";
-	// Address to bind-to for Subscriber-Publisher locally
-	private final static String PUBLISHER_ADDRESS = "tcp://*:5556";
+	// Address to bind-to for Dealer-router locally
+	private final static String router_ADDRESS = "tcp://127.0.0.1:5555";
+	// Address to bind-to for Subscriber-publisher locally
+	private final static String publisher_ADDRESS = "tcp://*:5556";
 	// Redis instance
 	private CacheService cacheService = new CacheService(REDIS_INSTNACE_NAME);
 	// Master's instance name
@@ -87,11 +85,11 @@ public class Master {
 	
 	public void sendWorkTo(String address){
 		// First packet must be the address of the slave
-		ROUTER.sendMore(address);
+		router.sendMore(address);
 		// Send event work-to-be-done
-		ROUTER.sendMore(WORK_TO_BE_DONE_EVENT);
+		router.sendMore(WORK_TO_BE_DONE_EVENT);
 		// Send body of message
-		ROUTER.send(Frontier.get());
+		router.send(Frontier.get());
 
 		logger.info("Work sent to slave {}", address);
 	}
@@ -103,47 +101,64 @@ public class Master {
 
 	// Master running in standby will just keep receiving heartbeat from active master util it stop then it will be promoted to run in active mode   
 	public void passive() {
+
+		// to receive heartbeat from active master
+		ZMQ.Socket subscriber;
+
 		try (ZContext context = new ZContext()) {
 
-			// Sub subscribe to all kind of message of master (disable filtering)
-			SUBSCRIBER = context.createSocket(SocketType.SUB);
+			subscriber = context.createSocket(SocketType.SUB);
 
 			// Sub subscribe to all kind of message of master (disable filtering)
-			SUBSCRIBER.subscribe(ZMQ.SUBSCRIPTION_ALL);
+			subscriber.subscribe(ZMQ.SUBSCRIPTION_ALL);
 
-			SUBSCRIBER.connect(SUBSCRIBER_ADDRESS);
+			subscriber.connect(SUBSCRIBER_ADDRESS);
 
-			// don't block if not received anything 
-			SUBSCRIBER.setReceiveTimeOut(HEARTBEAT_INTERVAL);
+			// don't block if not received anything
+			subscriber.setReceiveTimeOut(HEARTBEAT_INTERVAL + 2500);
 			
 			while (true) {
 
-				String messageReceived = SUBSCRIBER.recvStr();
+				String messageReceived = subscriber.recvStr();
 
 				if(messageReceived == null){
 					logger.info("Master haven't sent heartbeat yet, the livness before operating self promoting {}", liveness);
 
 					if (--liveness == 0)
-						selfPromoting(context);
+						break;
 				}
+				else
+					logger.info("Heartbeats received from active master");
 
 			}
+
+			// one reason is caused to break from above loop which is the livness reached limit
+			selfPromoting(context, subscriber);
+
 		}
+	}
+
+	public void selfPromoting(ZContext context, ZMQ.Socket subscriber){
+
+		context.destroySocket(subscriber);
+		logger.info("Self promoting after not receiving heartbeats from active master, this master is now active");
+		active();
 	}
 	
 	public void active() {
+
 		try (ZContext context = new ZContext()) {
 			
-			  ROUTER = context.createSocket(SocketType.ROUTER);
-		      PUBLISHER = context.createSocket(SocketType.PUB);
+			  router = context.createSocket(SocketType.ROUTER);
+		      publisher = context.createSocket(SocketType.PUB);
 		      poller = context.createPoller(2);
 		      
-		      PUBLISHER.bind(PUBLISHER_ADDRESS);
-		      ROUTER.bind(ROUTER_ADDRESS);
+		      publisher.bind(publisher_ADDRESS);
+		      router.bind(router_ADDRESS);
 		      
 		      // Register two sockets in poller so to listen on both sockets
-		      poller.register(ROUTER, ZMQ.Poller.POLLIN);
-		      poller.register(PUBLISHER, ZMQ.Poller.POLLIN);
+		      poller.register(router, ZMQ.Poller.POLLIN);
+		      poller.register(publisher, ZMQ.Poller.POLLIN);
 		      nextHeartbeat = System.currentTimeMillis() + HEARTBEAT_INTERVAL;
 		      
 		      while (true) {
@@ -158,7 +173,7 @@ public class Master {
 		    	// Message received from slave
 		    	if(poller.pollin(0))
 		    		// The message received from slave should have three part first part is address second part is event type and third part is body content
-					handleMessage(ROUTER.recvStr(), ROUTER.recvStr(), ROUTER.recvStr());
+					handleMessage(router.recvStr(), router.recvStr(), router.recvStr());
 		     }
 		}
 	}
@@ -188,7 +203,7 @@ public class Master {
 	public void sendHearbeat() {
 		// It's time to send heart beat to all subscriber
 		if(System.currentTimeMillis() > nextHeartbeat) {
-			PUBLISHER.send(HEARTBEAT_EVENT);
+			publisher.send(HEARTBEAT_EVENT);
 			logger.info("Heartbeat sent to slaves");
 			nextHeartbeat = System.currentTimeMillis() + HEARTBEAT_INTERVAL;
 		}

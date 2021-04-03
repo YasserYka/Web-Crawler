@@ -33,7 +33,7 @@ public class Master {
 
 	private static final Logger logger = LoggerFactory.getLogger(Master.class);
 	// Holds addresses of slaves whom ready for work
-	private Queue<String> queueOfSlaves = new LinkedList<String>();
+	private Queue<String> queueOfSlaves;
 	// router socket for Dealer-router pattern
 	private ZMQ.Socket router;
 	// publisher socket for Subscriber-publisher pattern used to send heart beat to
@@ -56,11 +56,11 @@ public class Master {
 	// event task to be done
 	private final static String WORK_TO_BE_DONE_EVENT = "004";
 	// Address to bind-to for Dealer-router locally
-	private final static String router_ADDRESS = "tcp://127.0.0.1:5555";
+	private final static String ROUTER_ADDRESS = "tcp://127.0.0.1:5555";
 	// Address to bind-to for Subscriber-publisher locally
-	private final static String publisher_ADDRESS = "tcp://*:5556";
+	private final static String PUBLISHER_ADDRESS = "tcp://*:5556";
 	// Redis instance
-	private CacheService cacheService = new CacheService(REDIS_INSTNACE_NAME);
+	private CacheService cacheService;
 	// Master's instance name
 	private final static String REDIS_INSTNACE_NAME = "master";
 	// Liveness of the active master (when we don't receive heart beat form master 10 times
@@ -147,14 +147,17 @@ public class Master {
 	
 	public void active() {
 
+		cacheService = new CacheService(REDIS_INSTNACE_NAME);
+		queueOfSlaves = new LinkedList<String>();
+
 		try (ZContext context = new ZContext()) {
 			
 			  router = context.createSocket(SocketType.ROUTER);
 		      publisher = context.createSocket(SocketType.PUB);
 		      poller = context.createPoller(2);
 		      
-		      publisher.bind(publisher_ADDRESS);
-		      router.bind(router_ADDRESS);
+		      publisher.bind(PUBLISHER_ADDRESS);
+		      router.bind(ROUTER_ADDRESS);
 		      
 		      // Register two sockets in poller so to listen on both sockets
 		      poller.register(router, ZMQ.Poller.POLLIN);
@@ -179,12 +182,12 @@ public class Master {
 	}
 	
 	// Takes the event frame and take action upon it
-	public void handleMessage(String frame1, String frame2, String frame3) {
-		logger.info("Message received from slave {}", frame1);
-		if(frame2.equals(READY_FOR_WORK_EVENT))
-			insertSlave(frame1);
-		else if(frame2.equals(WORK_FINISHED_EVENT))
-			handleFinishedWork(frame3);
+	public void handleMessage(String address, String eventType, String content) {
+		logger.info("Message received from slave {}", address);
+		if(eventType.equals(READY_FOR_WORK_EVENT))
+			insertSlave(address);
+		else if(eventType.equals(WORK_FINISHED_EVENT))
+			handleFinishedWork(content);
 	}
 	
 	// When slave sends back response that means an crawled 
